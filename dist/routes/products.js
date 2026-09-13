@@ -2,38 +2,42 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const products_1 = require("../services/products");
+const search_1 = require("../services/search");
 const router = (0, express_1.Router)();
-router.post("/", async (req, res) => {
+// GET /api/v1/products/search?q=ring
+router.get("/search", async (req, res) => {
     try {
-        const product = await (0, products_1.createProduct)(req.body);
-        res.status(201).json({
-            success: true,
-            message: "Product created successfully",
-            data: product,
-        });
-    }
-    catch (error) {
-        console.error("CREATE PRODUCT ERROR:", error);
-        res.status(500).json({
-            success: false,
-            message: error?.message || "Failed to create product",
-        });
-    }
-});
-//GET /api/v1/products
-router.get("/", async (req, res) => {
-    try {
-        const products = await (0, products_1.getProducts)();
+        const query = String(req.query.q || "");
+        const products = await (0, search_1.searchProducts)(query);
         res.status(200).json({
             success: true,
-            message: "Products Fetched Successfully",
+            message: "Products searched successfully",
             data: products,
         });
     }
     catch (error) {
+        console.error("SEARCH PRODUCTS ERROR:", error);
         res.status(500).json({
             success: false,
-            message: "Failed to fetch products"
+            message: "Failed to search products",
+        });
+    }
+});
+// GET /api/v1/products/new-arrivals
+router.get("/new-arrivals", async (req, res) => {
+    try {
+        const products = await (0, products_1.getNewArrivals)();
+        return res.status(200).json({
+            success: true,
+            message: "New arrivals fetched successfully",
+            data: products,
+        });
+    }
+    catch (error) {
+        console.error("GET NEW ARRIVALS ERROR:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch new arrivals",
         });
     }
 });
@@ -59,6 +63,40 @@ router.get("/:id", async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to fetch product",
+        });
+    }
+});
+//GET /api/v1/products
+router.get("/", async (req, res) => {
+    try {
+        const products = await (0, products_1.getProducts)();
+        res.status(200).json({
+            success: true,
+            message: "Products Fetched Successfully",
+            data: products,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch products"
+        });
+    }
+});
+router.post("/", async (req, res) => {
+    try {
+        const product = await (0, products_1.createProduct)(req.body);
+        res.status(201).json({
+            success: true,
+            message: "Product created successfully",
+            data: product,
+        });
+    }
+    catch (error) {
+        console.error("CREATE PRODUCT ERROR:", error);
+        res.status(500).json({
+            success: false,
+            message: error?.message || "Failed to create product",
         });
     }
 });

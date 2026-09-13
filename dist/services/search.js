@@ -9,7 +9,7 @@ async function searchProducts(query) {
     }
     const products = await prisma_js_1.prisma.product.findMany({
         where: {
-            status: "PUBLISHED",
+            status: "published",
             OR: [
                 {
                     name: {

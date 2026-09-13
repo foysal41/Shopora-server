@@ -69,4 +69,27 @@ router.delete("/:id", async (req, res) => {
         });
     }
 });
+router.get("/:id", async (req, res) => {
+    try {
+        const category = await (0, categories_1.getCategoryById)(req.params.id);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: "Category not found",
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Category fetched successfully",
+            data: category,
+        });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch category",
+        });
+    }
+});
 exports.default = router;

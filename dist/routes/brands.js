@@ -20,6 +20,30 @@ router.get("/", async (req, res) => {
         });
     }
 });
+// GET SINGLE BRAND (with products)
+router.get("/:id", async (req, res) => {
+    try {
+        const brand = await (0, brands_1.getBrandById)(req.params.id);
+        if (!brand) {
+            return res.status(404).json({
+                success: false,
+                message: "Brand not found",
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Brand fetched successfully",
+            data: brand,
+        });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch brand",
+        });
+    }
+});
 router.post("/", async (req, res) => {
     try {
         const brand = await (0, brands_1.createBrand)(req.body);

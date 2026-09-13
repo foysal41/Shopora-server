@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteBrand = exports.updateBrand = exports.createBrand = exports.getBrands = void 0;
+exports.getBrandById = exports.deleteBrand = exports.updateBrand = exports.createBrand = exports.getBrands = void 0;
 const prisma_1 = require("../lib/prisma");
 const getBrands = async () => {
     const brands = await prisma_1.prisma.brands.findMany({
@@ -51,3 +51,26 @@ const deleteBrand = async (id) => {
     });
 };
 exports.deleteBrand = deleteBrand;
+const getBrandById = async (id) => {
+    const brand = await prisma_1.prisma.brands.findUnique({
+        where: { id },
+        include: {
+            products: {
+                orderBy: { createdAt: "desc" },
+            },
+        },
+    });
+    if (!brand)
+        return null;
+    return {
+        id: brand.id,
+        name: brand.name,
+        description: brand.description,
+        logo: brand.logo,
+        status: brand.status,
+        createdAt: brand.createdAt,
+        productCount: brand.products.length,
+        products: brand.products,
+    };
+};
+exports.getBrandById = getBrandById;
