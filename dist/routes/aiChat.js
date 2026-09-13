@@ -39,7 +39,7 @@ router.post("/chat", async (req, res) => {
                 message: "Message is required",
             });
         }
-        console.log("AI CHAT MESSAGE:", message);
+        // console.log("AI CHAT MESSAGE:", message);
         /* =====================================================
            STEP 1
            AI UNDERSTANDS CUSTOMER MESSAGE
@@ -70,7 +70,10 @@ Rules:
   needsProductSearch to false.
 - When needsProductSearch is false, use an empty searchQuery.
       `, message);
-        console.log("AI QUERY RESPONSE:", queryResponse);
+        // console.log(
+        //   "AI QUERY RESPONSE:",
+        //   queryResponse
+        // );
         /* =====================================================
            PARSE SEARCH QUERY
         ===================================================== */
@@ -104,7 +107,10 @@ Rules:
                     .trim(),
             };
         }
-        console.log("AI SEARCH INFO:", searchInfo);
+        // console.log(
+        //   "AI SEARCH INFO:",
+        //   searchInfo
+        // );
         /* =====================================================
            NORMAL CHAT
            If product search is not needed
@@ -127,9 +133,12 @@ Do not invent Shopora product information.
            SEARCH SHOPORA DATABASE
         ===================================================== */
         const searchQuery = searchInfo.searchQuery.trim();
-        console.log("SHOPORA PRODUCT SEARCH QUERY:", searchQuery);
+        // console.log( "SHOPORA PRODUCT SEARCH QUERY:", searchQuery );
         const products = await (0, search_1.searchProducts)(searchQuery);
-        console.log("PRODUCTS FOUND:", products.length);
+        // console.log(
+        //   "PRODUCTS FOUND:",
+        //   products.length
+        // );
         /* =====================================================
            NO PRODUCT FOUND
         ===================================================== */
@@ -164,7 +173,10 @@ Short Description: ${product.shortDescription || "N/A"}
 Description: ${product.description || "N/A"}
 `)
             .join("\n-----------------------------\n");
-        console.log("PRODUCT CONTEXT:", productContext);
+        // console.log(
+        //   "PRODUCT CONTEXT:",
+        //   productContext
+        // );
         /* =====================================================
            AI FINAL RESPONSE
         ===================================================== */

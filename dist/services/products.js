@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteProduct = exports.updateProduct = exports.getProductById = exports.getProducts = exports.createProduct = void 0;
+exports.deleteProduct = exports.updateProduct = exports.getProductById = exports.getNewArrivals = exports.getProducts = exports.createProduct = void 0;
 const prisma_1 = require("../lib/prisma");
 const createProduct = async (data) => {
     // console.log(data)
@@ -19,6 +19,12 @@ const createProduct = async (data) => {
             description: data.description,
             status: data.productStatus,
             images: data.images,
+            Brands: data.brandId
+                ? { connect: { id: data.brandId } }
+                : undefined,
+            Categories: data.categoryId
+                ? { connect: { id: data.categoryId } }
+                : undefined,
             seller: {
                 connect: {
                     id: data.sellerId
@@ -36,6 +42,18 @@ const getProducts = async () => {
     });
 };
 exports.getProducts = getProducts;
+const getNewArrivals = async () => {
+    return await prisma_1.prisma.product.findMany({
+        where: {
+            status: "published",
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+        take: 12,
+    });
+};
+exports.getNewArrivals = getNewArrivals;
 const getProductById = async (id) => {
     return await prisma_1.prisma.product.findUnique({
         where: { id, },

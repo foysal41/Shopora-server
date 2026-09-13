@@ -8,6 +8,16 @@ router.get("/:sellerId", async (req, res) => {
   try {
     const { sellerId } = req.params;
 
+    const startDate =
+      typeof req.query.startDate === "string"
+        ? req.query.startDate
+        : undefined;
+
+    const endDate =
+      typeof req.query.endDate === "string"
+        ? req.query.endDate
+        : undefined;
+
     // Seller ID validation
     if (!sellerId) {
       return res.status(400).json({
@@ -16,8 +26,12 @@ router.get("/:sellerId", async (req, res) => {
       });
     }
 
-    // Get dashboard stats + analytics
-    const stats = await getSellerDashboardStats(sellerId);
+    // Get seller dashboard stats + analytics
+    const stats = await getSellerDashboardStats(
+      sellerId,
+      startDate,
+      endDate
+    );
 
     return res.status(200).json({
       success: true,
@@ -25,7 +39,10 @@ router.get("/:sellerId", async (req, res) => {
       data: stats,
     });
   } catch (error: any) {
-    console.error("SELLER DASHBOARD STATS ERROR:", error);
+    console.error(
+      "SELLER DASHBOARD STATS ERROR:",
+      error
+    );
 
     return res.status(500).json({
       success: false,

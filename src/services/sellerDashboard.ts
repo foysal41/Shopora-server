@@ -1,20 +1,49 @@
 import { prisma } from "../lib/prisma";
 
-const getWeekRange = (weekOffset = 0) => {
+const getCurrentWeekRange = () => {
   const now = new Date();
 
   const start = new Date(now);
 
-  start.setDate(
-    now.getDate() - now.getDay() - 7 * weekOffset
-  );
-
+  // Sunday as week start
+  start.setDate(now.getDate() - now.getDay());
   start.setHours(0, 0, 0, 0);
 
   const end = new Date(start);
-
   end.setDate(start.getDate() + 7);
-  end.setHours(23, 59, 59, 999);
+  end.setHours(0, 0, 0, 0);
+
+  return {
+    start,
+    end,
+  };
+};
+
+const parseDateRange = (
+  startDate?: string,
+  endDate?: string
+) => {
+  // If no date is selected → current week
+  if (!startDate || !endDate) {
+    return getCurrentWeekRange();
+  }
+
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime())
+  ) {
+    throw new Error("Invalid date range");
+  }
+
+  // End date is inclusive
+  end.setDate(end.getDate() + 1);
+
+  if (start >= end) {
+    throw new Error("Start date must be before end date");
+  }
 
   return {
     start,
@@ -23,127 +52,136 @@ const getWeekRange = (weekOffset = 0) => {
 };
 
 export const getSellerDashboardStats = async (
-  sellerId: string
+  sellerId: string,
+  startDate?: string,
+  endDate?: string
 ) => {
   if (!sellerId) {
     throw new Error("Seller ID is required");
   }
 
   // ============================================
-  // WEEK RANGE
+  // SELECTED DATE RANGE
   // ============================================
 
-  const currentWeek = getWeekRange(0);
-  const previousWeek = getWeekRange(1);
+  const currentRange = parseDateRange(
+    startDate,
+    endDate
+  );
+
+  // ============================================
+  // PREVIOUS EQUIVALENT PERIOD
+  // ============================================
+
+  const rangeDuration =
+    currentRange.end.getTime() -
+    currentRange.start.getTime();
+
+  const previousEnd = new Date(
+    currentRange.start.getTime()
+  );
+
+  const previousStart = new Date(
+    currentRange.start.getTime() -
+      rangeDuration
+  );
 
   // ============================================
   // TOTAL PRODUCTS
   // ============================================
 
-  const totalProducts = await prisma.product.count({
-    where: {
-      sellerId,
-    },
-  });
-
-  // ============================================
-  // CURRENT WEEK SALES
-  // ============================================
-
-  const currentSales = await prisma.orderItems.aggregate({
-    where: {
-      sellerId,
-
-      createdAt: {
-        gte: currentWeek.start,
-        lte: currentWeek.end,
+  const totalProducts =
+    await prisma.product.count({
+      where: {
+        sellerId,
       },
-
-      order: {
-        is: {
-          orderStatus: {
-            notIn: ["CANCELLED", "REFUNDED"],
-          },
-        },
-      },
-    },
-
-    _sum: {
-      total: true,
-      quantity: true,
-    },
-  });
+    });
 
   // ============================================
-  // PREVIOUS WEEK SALES
+  // CURRENT PERIOD SALES
   // ============================================
 
-  const previousSales = await prisma.orderItems.aggregate({
-    where: {
-      sellerId,
-
-      createdAt: {
-        gte: previousWeek.start,
-        lte: previousWeek.end,
-      },
-
-      order: {
-        is: {
-          orderStatus: {
-            notIn: ["CANCELLED", "REFUNDED"],
-          },
-        },
-      },
-    },
-
-    _sum: {
-      total: true,
-      quantity: true,
-    },
-  });
-
-  // ============================================
-  // ALL SELLER ORDERS
-  // ============================================
-
-  const sellerOrders = await prisma.orderItems.findMany({
-    where: {
-      sellerId,
-
-      order: {
-        is: {
-          orderStatus: {
-            notIn: ["CANCELLED", "REFUNDED"],
-          },
-        },
-      },
-    },
-
-    select: {
-      orderId: true,
-    },
-
-    distinct: ["orderId"],
-  });
-
-  // ============================================
-  // CURRENT WEEK ORDERS
-  // ============================================
-
-  const currentWeekOrders =
-    await prisma.orderItems.findMany({
+  const currentSales =
+    await prisma.orderItems.aggregate({
       where: {
         sellerId,
 
         createdAt: {
-          gte: currentWeek.start,
-          lte: currentWeek.end,
+          gte: currentRange.start,
+          lt: currentRange.end,
         },
 
         order: {
           is: {
             orderStatus: {
-              notIn: ["CANCELLED", "REFUNDED"],
+              notIn: [
+                "CANCELLED",
+                "REFUNDED",
+              ],
+            },
+          },
+        },
+      },
+
+      _sum: {
+        total: true,
+        quantity: true,
+      },
+    });
+
+  // ============================================
+  // PREVIOUS PERIOD SALES
+  // ============================================
+
+  const previousSales =
+    await prisma.orderItems.aggregate({
+      where: {
+        sellerId,
+
+        createdAt: {
+          gte: previousStart,
+          lt: previousEnd,
+        },
+
+        order: {
+          is: {
+            orderStatus: {
+              notIn: [
+                "CANCELLED",
+                "REFUNDED",
+              ],
+            },
+          },
+        },
+      },
+
+      _sum: {
+        total: true,
+        quantity: true,
+      },
+    });
+
+  // ============================================
+  // CURRENT PERIOD ORDERS
+  // ============================================
+
+  const currentOrders =
+    await prisma.orderItems.findMany({
+      where: {
+        sellerId,
+
+        createdAt: {
+          gte: currentRange.start,
+          lt: currentRange.end,
+        },
+
+        order: {
+          is: {
+            orderStatus: {
+              notIn: [
+                "CANCELLED",
+                "REFUNDED",
+              ],
             },
           },
         },
@@ -157,23 +195,26 @@ export const getSellerDashboardStats = async (
     });
 
   // ============================================
-  // PREVIOUS WEEK ORDERS
+  // PREVIOUS PERIOD ORDERS
   // ============================================
 
-  const previousWeekOrders =
+  const previousOrders =
     await prisma.orderItems.findMany({
       where: {
         sellerId,
 
         createdAt: {
-          gte: previousWeek.start,
-          lte: previousWeek.end,
+          gte: previousStart,
+          lt: previousEnd,
         },
 
         order: {
           is: {
             orderStatus: {
-              notIn: ["CANCELLED", "REFUNDED"],
+              notIn: [
+                "CANCELLED",
+                "REFUNDED",
+              ],
             },
           },
         },
@@ -187,7 +228,7 @@ export const getSellerDashboardStats = async (
     });
 
   // ============================================
-  // CURRENT WEEK VALUES
+  // CURRENT VALUES
   // ============================================
 
   const totalSales =
@@ -196,20 +237,11 @@ export const getSellerDashboardStats = async (
   const productsSold =
     currentSales._sum?.quantity ?? 0;
 
-  // ============================================
-  // ORDERS
-  // ============================================
-
-  const totalOrders = sellerOrders.length;
-
-  const currentOrders =
-    currentWeekOrders.length;
-
-  const previousOrders =
-    previousWeekOrders.length;
+  const totalOrders =
+    currentOrders.length;
 
   // ============================================
-  // PREVIOUS WEEK VALUES
+  // PREVIOUS VALUES
   // ============================================
 
   const previousTotalSales =
@@ -219,7 +251,7 @@ export const getSellerDashboardStats = async (
     previousSales._sum?.quantity ?? 0;
 
   // ============================================
-  // GROWTH CALCULATION
+  // GROWTH
   // ============================================
 
   const calculateGrowth = (
@@ -232,7 +264,8 @@ export const getSellerDashboardStats = async (
 
     return Number(
       (
-        ((current - previous) / previous) *
+        ((current - previous) /
+          previous) *
         100
       ).toFixed(1)
     );
@@ -244,15 +277,26 @@ export const getSellerDashboardStats = async (
 
   const topSellingItems =
     await prisma.orderItems.groupBy({
-      by: ["productId", "productName"],
+      by: [
+        "productId",
+        "productName",
+      ],
 
       where: {
         sellerId,
 
+        createdAt: {
+          gte: currentRange.start,
+          lt: currentRange.end,
+        },
+
         order: {
           is: {
             orderStatus: {
-              notIn: ["CANCELLED", "REFUNDED"],
+              notIn: [
+                "CANCELLED",
+                "REFUNDED",
+              ],
             },
           },
         },
@@ -272,14 +316,14 @@ export const getSellerDashboardStats = async (
       take: 5,
     });
 
-  // Product IDs from top selling items
+  // Product IDs
 
   const topSellingProductIds =
     topSellingItems.map(
       (item) => item.productId
     );
 
-  // Get product images
+  // Product details
 
   const topSellingProductDetails =
     topSellingProductIds.length
@@ -298,14 +342,15 @@ export const getSellerDashboardStats = async (
         })
       : [];
 
-  // Combine sales data + product data
+  // Final top products
 
   const topSellingProducts =
     topSellingItems.map((item) => {
       const product =
         topSellingProductDetails.find(
           (product) =>
-            product.id === item.productId
+            product.id ===
+            item.productId
         );
 
       return {
@@ -313,9 +358,11 @@ export const getSellerDashboardStats = async (
 
         name: item.productName,
 
-        sold: item._sum.quantity ?? 0,
+        sold:
+          item._sum.quantity ?? 0,
 
-        revenue: item._sum.total ?? 0,
+        revenue:
+          item._sum.total ?? 0,
 
         image:
           product?.images?.[0] ?? null,
@@ -330,9 +377,16 @@ export const getSellerDashboardStats = async (
     await prisma.orderItems.findMany({
       where: {
         sellerId,
+
+        createdAt: {
+          gte: currentRange.start,
+          lt: currentRange.end,
+        },
       },
 
       select: {
+        orderId: true,
+
         order: {
           select: {
             orderStatus: true,
@@ -353,100 +407,111 @@ export const getSellerDashboardStats = async (
     Cancelled: 0,
   };
 
-  // Count orders by status
+  ordersForOverview.forEach(
+    (item) => {
+      switch (
+        item.order.orderStatus
+      ) {
+        case "PENDING":
+        case "PLACED":
+          statusCounts.Pending++;
+          break;
 
-  ordersForOverview.forEach((item) => {
-    switch (item.order.orderStatus) {
-      case "PENDING":
-      case "PLACED":
-        statusCounts.Pending++;
-        break;
+        case "PROCESSING":
+        case "PACKED":
+          statusCounts.Processing++;
+          break;
 
-      case "PROCESSING":
-      case "PACKED":
-        statusCounts.Processing++;
-        break;
+        case "SHIPPED":
+          statusCounts.Shipped++;
+          break;
 
-      case "SHIPPED":
-        statusCounts.Shipped++;
-        break;
+        case "DELIVERED":
+          statusCounts.Delivered++;
+          break;
 
-      case "DELIVERED":
-        statusCounts.Delivered++;
-        break;
-
-      case "CANCELLED":
-        statusCounts.Cancelled++;
-        break;
+        case "CANCELLED":
+          statusCounts.Cancelled++;
+          break;
+      }
     }
-  });
-
-  // Total orders for percentage calculation
+  );
 
   const totalOverviewOrders =
-    Object.values(statusCounts).reduce(
-      (sum, count) => sum + count,
+    Object.values(
+      statusCounts
+    ).reduce(
+      (sum, count) =>
+        sum + count,
       0
     );
-
-  // Percentage helper
 
   const calculatePercentage = (
     count: number
   ) => {
-    if (totalOverviewOrders === 0) {
+    if (
+      totalOverviewOrders === 0
+    ) {
       return 0;
     }
 
     return Number(
       (
-        (count / totalOverviewOrders) *
+        (count /
+          totalOverviewOrders) *
         100
       ).toFixed(1)
     );
   };
 
-  // Final Orders Overview
-
   const ordersOverview = [
     {
       name: "Pending",
       count: statusCounts.Pending,
-      percentage: calculatePercentage(
-        statusCounts.Pending
-      ),
+      percentage:
+        calculatePercentage(
+          statusCounts.Pending
+        ),
     },
 
     {
       name: "Processing",
-      count: statusCounts.Processing,
-      percentage: calculatePercentage(
-        statusCounts.Processing
-      ),
+      count:
+        statusCounts.Processing,
+      percentage:
+        calculatePercentage(
+          statusCounts.Processing
+        ),
     },
 
     {
       name: "Shipped",
-      count: statusCounts.Shipped,
-      percentage: calculatePercentage(
-        statusCounts.Shipped
-      ),
+      count:
+        statusCounts.Shipped,
+      percentage:
+        calculatePercentage(
+          statusCounts.Shipped
+        ),
     },
 
     {
       name: "Delivered",
-      count: statusCounts.Delivered,
-      percentage: calculatePercentage(
-        statusCounts.Delivered
-      ),
+      count:
+        statusCounts.Delivered,
+      percentage:
+        calculatePercentage(
+          statusCounts.Delivered
+        ),
     },
 
     {
       name: "Cancelled",
-      count: statusCounts.Cancelled,
-      percentage: calculatePercentage(
-        statusCounts.Cancelled
-      ),
+      count:
+        statusCounts.Cancelled,
+      percentage:
+        calculatePercentage(
+          statusCounts.Cancelled
+        ),
     },
   ];
 
@@ -458,6 +523,11 @@ export const getSellerDashboardStats = async (
     await prisma.orderItems.findMany({
       where: {
         sellerId,
+
+        createdAt: {
+          gte: currentRange.start,
+          lt: currentRange.end,
+        },
       },
 
       select: {
@@ -466,14 +536,19 @@ export const getSellerDashboardStats = async (
         order: {
           select: {
             orderNumber: true,
+
             customer: {
               select: {
                 name: true,
               },
             },
+
             total: true,
+
             orderStatus: true,
+
             createdAt: true,
+
             shippingName: true,
           },
         },
@@ -490,40 +565,40 @@ export const getSellerDashboardStats = async (
       take: 5,
     });
 
-  // Format recent orders
-
   const recentOrders =
-    recentOrderItems.map((item) => ({
-      id: item.order.orderNumber,
+    recentOrderItems.map(
+      (item) => ({
+        id: item.order.orderNumber,
 
-      customer:
-        item.order.shippingName ||
-        item.order.customer?.name ||
-        "Customer",
+        customer:
+          item.order.shippingName ||
+          item.order.customer?.name ||
+          "Customer",
 
-      amount: item.order.total,
+        amount:
+          item.order.total,
 
-      status: item.order.orderStatus,
+        status:
+          item.order.orderStatus,
 
-      date: item.order.createdAt,
-    }));
+        date:
+          item.order.createdAt,
+      })
+    );
 
   // =========================================================
   // FINAL RESPONSE
   // =========================================================
 
   return {
-    // ==========================================
-    // EXISTING DASHBOARD STATS
-    // ==========================================
-
     totalSales,
 
     totalOrders,
 
     productsSold,
 
-    totalEarnings: totalSales,
+    totalEarnings:
+      totalSales,
 
     totalProducts,
 
@@ -532,30 +607,30 @@ export const getSellerDashboardStats = async (
     storeViewsGrowth: 0,
 
     growth: {
-      sales: calculateGrowth(
-        totalSales,
-        previousTotalSales
-      ),
+      sales:
+        calculateGrowth(
+          totalSales,
+          previousTotalSales
+        ),
 
-      orders: calculateGrowth(
-        currentOrders,
-        previousOrders
-      ),
+      orders:
+        calculateGrowth(
+          totalOrders,
+          previousOrders.length
+        ),
 
-      productsSold: calculateGrowth(
-        productsSold,
-        previousProductsSold
-      ),
+      productsSold:
+        calculateGrowth(
+          productsSold,
+          previousProductsSold
+        ),
 
-      earnings: calculateGrowth(
-        totalSales,
-        previousTotalSales
-      ),
+      earnings:
+        calculateGrowth(
+          totalSales,
+          previousTotalSales
+        ),
     },
-
-    // ==========================================
-    // ANALYTICS
-    // ==========================================
 
     analytics: {
       topSellingProducts,

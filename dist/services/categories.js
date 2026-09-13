@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCategories = exports.updateCategories = exports.createCategories = exports.getCategories = void 0;
+exports.getCategoryById = exports.deleteCategories = exports.updateCategories = exports.createCategories = exports.getCategories = void 0;
 const prisma_1 = require("../lib/prisma");
 const getCategories = async () => {
     return await prisma_1.prisma.categories.findMany({
+        where: {
+            status: "Active",
+        },
         include: {
             _count: {
                 select: {
@@ -40,3 +43,26 @@ const deleteCategories = async (id) => {
     });
 };
 exports.deleteCategories = deleteCategories;
+const getCategoryById = async (id) => {
+    const category = await prisma_1.prisma.categories.findUnique({
+        where: { id },
+        include: {
+            products: {
+                orderBy: { createdAt: "desc" },
+            },
+        },
+    });
+    if (!category)
+        return null;
+    return {
+        id: category.id,
+        name: category.name,
+        description: category.description,
+        image: category.image,
+        status: category.status,
+        createdAt: category.createdAt,
+        productCount: category.products.length,
+        products: category.products,
+    };
+};
+exports.getCategoryById = getCategoryById;
