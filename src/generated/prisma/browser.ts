@@ -33,6 +33,11 @@ export type sessions = Prisma.sessionsModel
  */
 export type users = Prisma.usersModel
 /**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
  * Model verifications
  * 
  */

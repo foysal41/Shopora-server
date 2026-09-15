@@ -11,6 +11,7 @@
 export type * from './models/accounts'
 export type * from './models/sessions'
 export type * from './models/users'
+export type * from './models/Notification'
 export type * from './models/verifications'
 export type * from './models/Product'
 export type * from './models/Categories'

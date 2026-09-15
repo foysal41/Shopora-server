@@ -44,23 +44,39 @@ model sessions {
 }
 
 model users {
-  id            String     @id
-  name          String
-  email         String     @unique
-  emailVerified Boolean    @default(false)
-  image         String?
-  role          UserRole   @default(Customer)
-  createdAt     DateTime
-  updatedAt     DateTime
-  accounts      accounts[]
-  sessions      sessions[]
-  product       Product[]
-  wishlist      Wishlist[]
+  id               String       @id
+  name             String
+  email            String       @unique
+  emailVerified    Boolean      @default(false)
+  image            String?
+  role             UserRole     @default(Customer)
+  createdAt        DateTime
+  updatedAt        DateTime
+  stripeCustomerId String?
+  addresses        Address[]
+  notifications Notification[]
+  customerOrders   Order[]      @relation("CustomerOrders")
+  sellerOrders     OrderItems[] @relation("SellerOrderItems")
+  product          Product[]
+  wishlist         Wishlist[]
+  accounts         accounts[]
+  sessions         sessions[]
+}
 
-  customerOrders Order[]      @relation("CustomerOrders")
-  sellerOrders   OrderItems[] @relation("SellerOrderItems")
 
-  addresses      Address[]
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  users     users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  link      String? 
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model verifications {
@@ -76,44 +92,40 @@ model verifications {
 }
 
 model Product {
-  id               String   @id @default(uuid())
+  id               String       @id @default(uuid())
   name             String
-  sku              String   @unique
+  sku              String       @unique
   shortDescription String?
   category         String
   brand            String?
   regularPrice     Float
   salePrice        Float?
   stockQuantity    Int
-  lowStockAlert    Int      @default(10)
-  stockStatus      String   @default("IN_STOCK")
+  lowStockAlert    Int          @default(10)
+  stockStatus      String       @default("IN_STOCK")
   description      String?
   images           String[]
-  status           String   @default("DRAFT")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  CategoriesId String?
-  Categories   Categories? @relation(fields: [CategoriesId], references: [id])
-
-  BrandsId String?
-  Brands   Brands? @relation(fields: [BrandsId], references: [id])
-
-  sellerId String
-  seller   users  @relation(fields: [sellerId], references: [id])
-
-  orderItems OrderItems[]
-  wishlistedBy Wishlist[] 
+  status           String       @default("DRAFT")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  CategoriesId     String?
+  BrandsId         String?
+  sellerId         String
+  orderItems       OrderItems[]
+  Brands           Brands?      @relation(fields: [BrandsId], references: [id])
+  Categories       Categories?  @relation(fields: [CategoriesId], references: [id])
+  seller           users        @relation(fields: [sellerId], references: [id])
+  wishlistedBy     Wishlist[]
 }
 
 model Categories {
   id          String    @id @default(uuid())
   name        String    @unique
   description String?
-  image       String?
   status      String    @default("Active")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  image       String?
   products    Product[]
 }
 
@@ -128,17 +140,13 @@ model Brands {
   products    Product[]
 }
 
-
 model Wishlist {
-  id String @id @default(uuid())
-
-  userId String
-  users  users  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(uuid())
+  userId    String
   productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
   @@index([userId])
@@ -146,106 +154,63 @@ model Wishlist {
 }
 
 model Address {
-  id String @id @default(uuid())
-
-  userId String
-  users  users  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  label       String? // e.g. "Home", "Work" (optional)
+  id          String   @id @default(uuid())
+  userId      String
+  label       String?
   fullName    String
   phone       String
   addressLine String
   city        String
   postalCode  String?
   country     String
-  isDefault   Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
-enum UserRole {
-  Customer
-  Seller
-  Admin
-}
-
 model Order {
-  id          String @id @default(uuid())
-  orderNumber String @unique
-
-  customerId String
-  customer   users  @relation("CustomerOrders", fields: [customerId], references: [id])
-
-  subtotal    Float
-  shippingFee Float @default(0)
-  discount    Float @default(0)
-  total       Float
-
-  paymentMethod String?
-  paymentStatus PaymentStatus @default(PENDING)
-  orderStatus   OrderStatus   @default(PLACED)
-
+  id                 String        @id @default(uuid())
+  orderNumber        String        @unique
+  customerId         String
+  subtotal           Float
+  shippingFee        Float         @default(0)
+  discount           Float         @default(0)
+  total              Float
+  paymentMethod      String?
+  paymentStatus      PaymentStatus @default(PENDING)
+  orderStatus        OrderStatus   @default(PLACED)
   shippingName       String
   shippingPhone      String
   shippingAddress    String
   shippingCity       String?
   shippingPostalCode String?
   shippingCountry    String?
-
-  couponCode String?
-  notes      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  items OrderItems[]
+  couponCode         String?
+  notes              String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  customer           users         @relation("CustomerOrders", fields: [customerId], references: [id])
+  items              OrderItems[]
 }
 
 model OrderItems {
-  id String @id @default(uuid())
-
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-
-  sellerId String
-  seller   users  @relation("SellerOrderItems", fields: [sellerId], references: [id])
-
+  id          String   @id @default(uuid())
+  orderId     String
+  productId   String
+  sellerId    String
   productName String
   price       Float
   quantity    Int
   total       Float
-
-  createdAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+  seller      users    @relation("SellerOrderItems", fields: [sellerId], references: [id])
 }
 
-enum OrderStatus {
-  PENDING
-  PLACED
-  PAID
-  PROCESSING
-  PACKED
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-}
-
-enum PaymentStatus {
-  PENDING
-  PAID
-  FAILED
-  REFUNDED
-}
-
-
-
-//------------------------------- Coupon Model ---------------------------
 model Coupon {
   id           String       @id @default(uuid())
   couponCode   String       @unique
@@ -255,6 +220,31 @@ model Coupon {
   expiryDate   DateTime
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+}
+
+enum UserRole {
+  Customer
+  Seller
+  Admin
+}
+
+enum OrderStatus {
+  PLACED
+  PAID
+  PROCESSING
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+  PENDING
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
 }
 
 enum DiscountType {

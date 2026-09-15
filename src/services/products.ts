@@ -1,8 +1,9 @@
 import { prisma } from "../lib/prisma";
+import { createNotification } from "./notifications";
 
 export const createProduct = async (data: any) => {
     // console.log(data)
-    return await prisma.product.create({
+    const product = await prisma.product.create({
         data: {
             name: data.name,
             sku: data.sku,
@@ -25,16 +26,38 @@ export const createProduct = async (data: any) => {
                 ? { connect: { id: data.brandId } }
                 : undefined,
 
-Categories: data.categoryId
-  ? { connect: { id: data.categoryId } }
-  : undefined,
-      seller:{
-        connect: {
-            id: data.sellerId
-        }
-      }
-    },
-  });
+            Categories: data.categoryId
+                ? { connect: { id: data.categoryId } }
+                : undefined,
+            seller: {
+                connect: {
+                    id: data.sellerId
+                }
+            }
+        },
+    });
+
+    // Notify all customers about the new product (only when published).
+    if (product.status === "published") {
+        const customers = await prisma.users.findMany({
+            where: { role: "Customer" },
+            select: { id: true },
+        });
+
+        await Promise.all(
+            customers.map((customer) =>
+                createNotification({
+                    userId: customer.id,
+                    type: "new_product",
+                    title: "New Product Arrived",
+                    message: `${product.name} has just been added to the store — check it out!`,
+                    link: `/products/${product.id}`, 
+                })
+            )
+        );
+    }
+
+    return product;
 };
 
 
