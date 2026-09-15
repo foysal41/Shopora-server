@@ -13,6 +13,7 @@ import aiProductSearchRouter from "./routes/aiProductSearch";
 import stripeRoutes from "./routes/stripe";
 import addressRoutes from "./routes/address";
 import sellerDashboardRouter from "./routes/sellerDashboard";
+import notificationsRouter from "./routes/notifications";
 const app = express();
 
 
@@ -40,6 +41,7 @@ app.use("/api/v1/ai/products", aiProductSearchRouter);
 app.use("/api/v1/stripe", stripeRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use("/api/v1/seller/dashboard", sellerDashboardRouter);
+app.use("/api/v1/notifications", notificationsRouter);
 
 
 export default app
