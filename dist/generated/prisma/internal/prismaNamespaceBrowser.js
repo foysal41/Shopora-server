@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.CouponScalarFieldEnum = exports.OrderItemsScalarFieldEnum = exports.OrderScalarFieldEnum = exports.AddressScalarFieldEnum = exports.WishlistScalarFieldEnum = exports.BrandsScalarFieldEnum = exports.CategoriesScalarFieldEnum = exports.ProductScalarFieldEnum = exports.VerificationsScalarFieldEnum = exports.UsersScalarFieldEnum = exports.SessionsScalarFieldEnum = exports.AccountsScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.CouponScalarFieldEnum = exports.OrderItemsScalarFieldEnum = exports.OrderScalarFieldEnum = exports.PaymentMethodScalarFieldEnum = exports.AddressScalarFieldEnum = exports.WishlistScalarFieldEnum = exports.BrandsScalarFieldEnum = exports.CategoriesScalarFieldEnum = exports.ProductScalarFieldEnum = exports.VerificationsScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.UsersScalarFieldEnum = exports.SessionsScalarFieldEnum = exports.AccountsScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -78,12 +78,14 @@ exports.ModelName = {
     accounts: 'accounts',
     sessions: 'sessions',
     users: 'users',
+    Notification: 'Notification',
     verifications: 'verifications',
     Product: 'Product',
     Categories: 'Categories',
     Brands: 'Brands',
     Wishlist: 'Wishlist',
     Address: 'Address',
+    PaymentMethod: 'PaymentMethod',
     Order: 'Order',
     OrderItems: 'OrderItems',
     Coupon: 'Coupon'
@@ -131,7 +133,18 @@ exports.UsersScalarFieldEnum = {
     image: 'image',
     role: 'role',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    stripeCustomerId: 'stripeCustomerId'
+};
+exports.NotificationScalarFieldEnum = {
+    id: 'id',
+    userId: 'userId',
+    type: 'type',
+    title: 'title',
+    message: 'message',
+    link: 'link',
+    isRead: 'isRead',
+    createdAt: 'createdAt'
 };
 exports.VerificationsScalarFieldEnum = {
     id: 'id',
@@ -166,10 +179,10 @@ exports.CategoriesScalarFieldEnum = {
     id: 'id',
     name: 'name',
     description: 'description',
-    image: 'image',
     status: 'status',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    image: 'image'
 };
 exports.BrandsScalarFieldEnum = {
     id: 'id',
@@ -197,6 +210,22 @@ exports.AddressScalarFieldEnum = {
     postalCode: 'postalCode',
     country: 'country',
     isDefault: 'isDefault',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.PaymentMethodScalarFieldEnum = {
+    id: 'id',
+    userId: 'userId',
+    label: 'label',
+    brand: 'brand',
+    last4: 'last4',
+    expiryMonth: 'expiryMonth',
+    expiryYear: 'expiryYear',
+    cardholderName: 'cardholderName',
+    billingAddress: 'billingAddress',
+    isDefault: 'isDefault',
+    providerRef: 'providerRef',
+    status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

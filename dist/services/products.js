@@ -2,9 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteProduct = exports.updateProduct = exports.getProductById = exports.getNewArrivals = exports.getProducts = exports.createProduct = void 0;
 const prisma_1 = require("../lib/prisma");
+const notifications_1 = require("./notifications");
 const createProduct = async (data) => {
     // console.log(data)
-    return await prisma_1.prisma.product.create({
+    const product = await prisma_1.prisma.product.create({
         data: {
             name: data.name,
             sku: data.sku,
@@ -32,6 +33,21 @@ const createProduct = async (data) => {
             }
         },
     });
+    // Notify all customers about the new product (only when published).
+    if (product.status === "published") {
+        const customers = await prisma_1.prisma.users.findMany({
+            where: { role: "Customer" },
+            select: { id: true },
+        });
+        await Promise.all(customers.map((customer) => (0, notifications_1.createNotification)({
+            userId: customer.id,
+            type: "new_product",
+            title: "New Product Arrived",
+            message: `${product.name} has just been added to the store — check it out!`,
+            link: `/products/${product.id}`,
+        })));
+    }
+    return product;
 };
 exports.createProduct = createProduct;
 const getProducts = async () => {

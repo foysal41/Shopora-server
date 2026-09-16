@@ -59,6 +59,7 @@ model users {
   sellerOrders     OrderItems[] @relation("SellerOrderItems")
   product          Product[]
   wishlist         Wishlist[]
+  paymentMethods   PaymentMethod[]
   accounts         accounts[]
   sessions         sessions[]
 }
@@ -169,6 +170,28 @@ model Address {
   users       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model PaymentMethod {
+  id             String   @id @default(cuid())
+  userId         String
+  label          String?
+  brand          String?
+  last4          String
+  expiryMonth    Int
+  expiryYear     Int
+  cardholderName String
+  billingAddress String?
+  isDefault      Boolean  @default(false)
+  providerRef    String?
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isDefault])
+  @@map("payment_methods")
 }
 
 model Order {

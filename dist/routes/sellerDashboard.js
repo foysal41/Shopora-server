@@ -7,6 +7,12 @@ const router = (0, express_1.Router)();
 router.get("/:sellerId", async (req, res) => {
     try {
         const { sellerId } = req.params;
+        const startDate = typeof req.query.startDate === "string"
+            ? req.query.startDate
+            : undefined;
+        const endDate = typeof req.query.endDate === "string"
+            ? req.query.endDate
+            : undefined;
         // Seller ID validation
         if (!sellerId) {
             return res.status(400).json({
@@ -14,8 +20,8 @@ router.get("/:sellerId", async (req, res) => {
                 message: "Seller ID is required",
             });
         }
-        // Get dashboard stats + analytics
-        const stats = await (0, sellerDashboard_1.getSellerDashboardStats)(sellerId);
+        // Get seller dashboard stats + analytics
+        const stats = await (0, sellerDashboard_1.getSellerDashboardStats)(sellerId, startDate, endDate);
         return res.status(200).json({
             success: true,
             message: "Seller dashboard stats fetched successfully",

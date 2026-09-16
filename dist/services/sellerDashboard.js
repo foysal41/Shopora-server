@@ -2,28 +2,57 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSellerDashboardStats = void 0;
 const prisma_1 = require("../lib/prisma");
-const getWeekRange = (weekOffset = 0) => {
+const getCurrentWeekRange = () => {
     const now = new Date();
     const start = new Date(now);
-    start.setDate(now.getDate() - now.getDay() - 7 * weekOffset);
+    // Sunday as week start
+    start.setDate(now.getDate() - now.getDay());
     start.setHours(0, 0, 0, 0);
     const end = new Date(start);
     end.setDate(start.getDate() + 7);
-    end.setHours(23, 59, 59, 999);
+    end.setHours(0, 0, 0, 0);
     return {
         start,
         end,
     };
 };
-const getSellerDashboardStats = async (sellerId) => {
+const parseDateRange = (startDate, endDate) => {
+    // If no date is selected → current week
+    if (!startDate || !endDate) {
+        return getCurrentWeekRange();
+    }
+    const start = new Date(`${startDate}T00:00:00`);
+    const end = new Date(`${endDate}T00:00:00`);
+    if (Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime())) {
+        throw new Error("Invalid date range");
+    }
+    // End date is inclusive
+    end.setDate(end.getDate() + 1);
+    if (start >= end) {
+        throw new Error("Start date must be before end date");
+    }
+    return {
+        start,
+        end,
+    };
+};
+const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     if (!sellerId) {
         throw new Error("Seller ID is required");
     }
     // ============================================
-    // WEEK RANGE
+    // SELECTED DATE RANGE
     // ============================================
-    const currentWeek = getWeekRange(0);
-    const previousWeek = getWeekRange(1);
+    const currentRange = parseDateRange(startDate, endDate);
+    // ============================================
+    // PREVIOUS EQUIVALENT PERIOD
+    // ============================================
+    const rangeDuration = currentRange.end.getTime() -
+        currentRange.start.getTime();
+    const previousEnd = new Date(currentRange.start.getTime());
+    const previousStart = new Date(currentRange.start.getTime() -
+        rangeDuration);
     // ============================================
     // TOTAL PRODUCTS
     // ============================================
@@ -33,19 +62,22 @@ const getSellerDashboardStats = async (sellerId) => {
         },
     });
     // ============================================
-    // CURRENT WEEK SALES
+    // CURRENT PERIOD SALES
     // ============================================
     const currentSales = await prisma_1.prisma.orderItems.aggregate({
         where: {
             sellerId,
             createdAt: {
-                gte: currentWeek.start,
-                lte: currentWeek.end,
+                gte: currentRange.start,
+                lt: currentRange.end,
             },
             order: {
                 is: {
                     orderStatus: {
-                        notIn: ["CANCELLED", "REFUNDED"],
+                        notIn: [
+                            "CANCELLED",
+                            "REFUNDED",
+                        ],
                     },
                 },
             },
@@ -56,19 +88,22 @@ const getSellerDashboardStats = async (sellerId) => {
         },
     });
     // ============================================
-    // PREVIOUS WEEK SALES
+    // PREVIOUS PERIOD SALES
     // ============================================
     const previousSales = await prisma_1.prisma.orderItems.aggregate({
         where: {
             sellerId,
             createdAt: {
-                gte: previousWeek.start,
-                lte: previousWeek.end,
+                gte: previousStart,
+                lt: previousEnd,
             },
             order: {
                 is: {
                     orderStatus: {
-                        notIn: ["CANCELLED", "REFUNDED"],
+                        notIn: [
+                            "CANCELLED",
+                            "REFUNDED",
+                        ],
                     },
                 },
             },
@@ -79,38 +114,22 @@ const getSellerDashboardStats = async (sellerId) => {
         },
     });
     // ============================================
-    // ALL SELLER ORDERS
+    // CURRENT PERIOD ORDERS
     // ============================================
-    const sellerOrders = await prisma_1.prisma.orderItems.findMany({
-        where: {
-            sellerId,
-            order: {
-                is: {
-                    orderStatus: {
-                        notIn: ["CANCELLED", "REFUNDED"],
-                    },
-                },
-            },
-        },
-        select: {
-            orderId: true,
-        },
-        distinct: ["orderId"],
-    });
-    // ============================================
-    // CURRENT WEEK ORDERS
-    // ============================================
-    const currentWeekOrders = await prisma_1.prisma.orderItems.findMany({
+    const currentOrders = await prisma_1.prisma.orderItems.findMany({
         where: {
             sellerId,
             createdAt: {
-                gte: currentWeek.start,
-                lte: currentWeek.end,
+                gte: currentRange.start,
+                lt: currentRange.end,
             },
             order: {
                 is: {
                     orderStatus: {
-                        notIn: ["CANCELLED", "REFUNDED"],
+                        notIn: [
+                            "CANCELLED",
+                            "REFUNDED",
+                        ],
                     },
                 },
             },
@@ -121,19 +140,22 @@ const getSellerDashboardStats = async (sellerId) => {
         distinct: ["orderId"],
     });
     // ============================================
-    // PREVIOUS WEEK ORDERS
+    // PREVIOUS PERIOD ORDERS
     // ============================================
-    const previousWeekOrders = await prisma_1.prisma.orderItems.findMany({
+    const previousOrders = await prisma_1.prisma.orderItems.findMany({
         where: {
             sellerId,
             createdAt: {
-                gte: previousWeek.start,
-                lte: previousWeek.end,
+                gte: previousStart,
+                lt: previousEnd,
             },
             order: {
                 is: {
                     orderStatus: {
-                        notIn: ["CANCELLED", "REFUNDED"],
+                        notIn: [
+                            "CANCELLED",
+                            "REFUNDED",
+                        ],
                     },
                 },
             },
@@ -144,42 +166,48 @@ const getSellerDashboardStats = async (sellerId) => {
         distinct: ["orderId"],
     });
     // ============================================
-    // CURRENT WEEK VALUES
+    // CURRENT VALUES
     // ============================================
     const totalSales = currentSales._sum?.total ?? 0;
     const productsSold = currentSales._sum?.quantity ?? 0;
+    const totalOrders = currentOrders.length;
     // ============================================
-    // ORDERS
-    // ============================================
-    const totalOrders = sellerOrders.length;
-    const currentOrders = currentWeekOrders.length;
-    const previousOrders = previousWeekOrders.length;
-    // ============================================
-    // PREVIOUS WEEK VALUES
+    // PREVIOUS VALUES
     // ============================================
     const previousTotalSales = previousSales._sum?.total ?? 0;
     const previousProductsSold = previousSales._sum?.quantity ?? 0;
     // ============================================
-    // GROWTH CALCULATION
+    // GROWTH
     // ============================================
     const calculateGrowth = (current, previous) => {
         if (previous === 0) {
             return current > 0 ? 100 : 0;
         }
-        return Number((((current - previous) / previous) *
+        return Number((((current - previous) /
+            previous) *
             100).toFixed(1));
     };
     // =========================================================
     // TOP SELLING PRODUCTS
     // =========================================================
     const topSellingItems = await prisma_1.prisma.orderItems.groupBy({
-        by: ["productId", "productName"],
+        by: [
+            "productId",
+            "productName",
+        ],
         where: {
             sellerId,
+            createdAt: {
+                gte: currentRange.start,
+                lt: currentRange.end,
+            },
             order: {
                 is: {
                     orderStatus: {
-                        notIn: ["CANCELLED", "REFUNDED"],
+                        notIn: [
+                            "CANCELLED",
+                            "REFUNDED",
+                        ],
                     },
                 },
             },
@@ -195,9 +223,9 @@ const getSellerDashboardStats = async (sellerId) => {
         },
         take: 5,
     });
-    // Product IDs from top selling items
+    // Product IDs
     const topSellingProductIds = topSellingItems.map((item) => item.productId);
-    // Get product images
+    // Product details
     const topSellingProductDetails = topSellingProductIds.length
         ? await prisma_1.prisma.product.findMany({
             where: {
@@ -212,9 +240,10 @@ const getSellerDashboardStats = async (sellerId) => {
             },
         })
         : [];
-    // Combine sales data + product data
+    // Final top products
     const topSellingProducts = topSellingItems.map((item) => {
-        const product = topSellingProductDetails.find((product) => product.id === item.productId);
+        const product = topSellingProductDetails.find((product) => product.id ===
+            item.productId);
         return {
             id: item.productId,
             name: item.productName,
@@ -229,8 +258,13 @@ const getSellerDashboardStats = async (sellerId) => {
     const ordersForOverview = await prisma_1.prisma.orderItems.findMany({
         where: {
             sellerId,
+            createdAt: {
+                gte: currentRange.start,
+                lt: currentRange.end,
+            },
         },
         select: {
+            orderId: true,
             order: {
                 select: {
                     orderStatus: true,
@@ -247,7 +281,6 @@ const getSellerDashboardStats = async (sellerId) => {
         Delivered: 0,
         Cancelled: 0,
     };
-    // Count orders by status
     ordersForOverview.forEach((item) => {
         switch (item.order.orderStatus) {
             case "PENDING":
@@ -269,17 +302,15 @@ const getSellerDashboardStats = async (sellerId) => {
                 break;
         }
     });
-    // Total orders for percentage calculation
     const totalOverviewOrders = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
-    // Percentage helper
     const calculatePercentage = (count) => {
         if (totalOverviewOrders === 0) {
             return 0;
         }
-        return Number(((count / totalOverviewOrders) *
+        return Number(((count /
+            totalOverviewOrders) *
             100).toFixed(1));
     };
-    // Final Orders Overview
     const ordersOverview = [
         {
             name: "Pending",
@@ -313,6 +344,10 @@ const getSellerDashboardStats = async (sellerId) => {
     const recentOrderItems = await prisma_1.prisma.orderItems.findMany({
         where: {
             sellerId,
+            createdAt: {
+                gte: currentRange.start,
+                lt: currentRange.end,
+            },
         },
         select: {
             orderId: true,
@@ -339,7 +374,6 @@ const getSellerDashboardStats = async (sellerId) => {
         distinct: ["orderId"],
         take: 5,
     });
-    // Format recent orders
     const recentOrders = recentOrderItems.map((item) => ({
         id: item.order.orderNumber,
         customer: item.order.shippingName ||
@@ -353,9 +387,6 @@ const getSellerDashboardStats = async (sellerId) => {
     // FINAL RESPONSE
     // =========================================================
     return {
-        // ==========================================
-        // EXISTING DASHBOARD STATS
-        // ==========================================
         totalSales,
         totalOrders,
         productsSold,
@@ -365,13 +396,10 @@ const getSellerDashboardStats = async (sellerId) => {
         storeViewsGrowth: 0,
         growth: {
             sales: calculateGrowth(totalSales, previousTotalSales),
-            orders: calculateGrowth(currentOrders, previousOrders),
+            orders: calculateGrowth(totalOrders, previousOrders.length),
             productsSold: calculateGrowth(productsSold, previousProductsSold),
             earnings: calculateGrowth(totalSales, previousTotalSales),
         },
-        // ==========================================
-        // ANALYTICS
-        // ==========================================
         analytics: {
             topSellingProducts,
             ordersOverview,

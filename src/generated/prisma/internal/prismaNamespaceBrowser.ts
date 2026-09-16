@@ -61,6 +61,7 @@ export const ModelName = {
   Brands: 'Brands',
   Wishlist: 'Wishlist',
   Address: 'Address',
+  PaymentMethod: 'PaymentMethod',
   Order: 'Order',
   OrderItems: 'OrderItems',
   Coupon: 'Coupon'
@@ -234,6 +235,26 @@ export const AddressScalarFieldEnum = {
 } as const
 
 export type AddressScalarFieldEnum = (typeof AddressScalarFieldEnum)[keyof typeof AddressScalarFieldEnum]
+
+
+export const PaymentMethodScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  label: 'label',
+  brand: 'brand',
+  last4: 'last4',
+  expiryMonth: 'expiryMonth',
+  expiryYear: 'expiryYear',
+  cardholderName: 'cardholderName',
+  billingAddress: 'billingAddress',
+  isDefault: 'isDefault',
+  providerRef: 'providerRef',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentMethodScalarFieldEnum = (typeof PaymentMethodScalarFieldEnum)[keyof typeof PaymentMethodScalarFieldEnum]
 
 
 export const OrderScalarFieldEnum = {

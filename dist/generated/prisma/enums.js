@@ -16,7 +16,6 @@ exports.UserRole = {
     Admin: 'Admin'
 };
 exports.OrderStatus = {
-    PENDING: 'PENDING',
     PLACED: 'PLACED',
     PAID: 'PAID',
     PROCESSING: 'PROCESSING',
@@ -24,7 +23,8 @@ exports.OrderStatus = {
     SHIPPED: 'SHIPPED',
     DELIVERED: 'DELIVERED',
     CANCELLED: 'CANCELLED',
-    REFUNDED: 'REFUNDED'
+    REFUNDED: 'REFUNDED',
+    PENDING: 'PENDING'
 };
 exports.PaymentStatus = {
     PENDING: 'PENDING',
