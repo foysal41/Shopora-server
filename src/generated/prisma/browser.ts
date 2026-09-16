@@ -68,6 +68,11 @@ export type Wishlist = Prisma.WishlistModel
  */
 export type Address = Prisma.AddressModel
 /**
+ * Model PaymentMethod
+ * 
+ */
+export type PaymentMethod = Prisma.PaymentMethodModel
+/**
  * Model Order
  * 
  */

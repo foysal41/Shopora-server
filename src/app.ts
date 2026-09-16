@@ -14,6 +14,7 @@ import stripeRoutes from "./routes/stripe";
 import addressRoutes from "./routes/address";
 import sellerDashboardRouter from "./routes/sellerDashboard";
 import notificationsRouter from "./routes/notifications";
+import paymentMethodsRouter from "./routes/paymentMethods";
 const app = express();
 
 
@@ -42,6 +43,7 @@ app.use("/api/v1/stripe", stripeRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use("/api/v1/seller/dashboard", sellerDashboardRouter);
 app.use("/api/v1/notifications", notificationsRouter);
+app.use("/api/v1/payment-methods", paymentMethodsRouter);
 
 
 export default app
