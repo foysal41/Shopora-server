@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import type { AuthenticatedUser } from "../types/express";
 
 function getSessionToken(req: Request) {
   const authorization = req.header("authorization");
@@ -49,7 +50,7 @@ export async function requireAuth(
       return;
     }
 
-    req.user = session.users;
+    req.user = session.users as AuthenticatedUser;
     next();
   } catch (error) {
     console.error("AUTHENTICATION ERROR:", error);
