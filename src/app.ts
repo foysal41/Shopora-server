@@ -16,6 +16,7 @@ import sellerDashboardRouter from "./routes/sellerDashboard";
 import notificationsRouter from "./routes/notifications";
 import paymentMethodsRouter from "./routes/paymentMethods";
 import reviewsRouter from "./routes/reviews";
+import adminCustomersRouter from "./routes/adminCustomers";
 const app = express();
 
 
@@ -46,6 +47,7 @@ app.use("/api/v1/seller/dashboard", sellerDashboardRouter);
 app.use("/api/v1/notifications", notificationsRouter);
 app.use("/api/v1/payment-methods", paymentMethodsRouter);
 app.use("/api/v1/reviews", reviewsRouter);
+app.use("/api/v1/admin/customers", adminCustomersRouter);
 
 
 export default app

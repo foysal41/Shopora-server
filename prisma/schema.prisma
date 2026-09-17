@@ -50,6 +50,8 @@ model users {
   emailVerified    Boolean         @default(false)
   image            String?
   role             UserRole        @default(Customer)
+  isBlocked        Boolean         @default(false)
+  isDeleted        Boolean         @default(false)
   createdAt        DateTime
   updatedAt        DateTime
   stripeCustomerId String?

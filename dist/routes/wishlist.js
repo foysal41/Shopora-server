@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const wishlist_1 = require("../services/wishlist");
+const auth_1 = require("../middleware/auth");
 const router = (0, express_1.Router)();
 // GET /api/v1/wishlist?userId=xxx
 router.get("/", async (req, res) => {
@@ -55,9 +56,10 @@ router.get("/check", async (req, res) => {
     }
 });
 // POST /api/v1/wishlist   body: { userId, productId }
-router.post("/", async (req, res) => {
+router.post("/", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req, res) => {
     try {
-        const { userId, productId } = req.body;
+        const { productId } = req.body;
+        const userId = req.user.id;
         if (!userId || !productId) {
             res.status(400).json({
                 success: false,
@@ -81,12 +83,10 @@ router.post("/", async (req, res) => {
     }
 });
 // DELETE /api/v1/wishlist/:productId?userId=xxx
-router.delete("/:productId", async (req, res) => {
+router.delete("/:productId", auth_1.requireAuth, async (req, res) => {
     try {
-        const { productId } = req.params;
-        const userId = typeof req.query.userId === "string"
-            ? req.query.userId
-            : req.body?.userId;
+        const productId = String(req.params.productId);
+        const userId = req.user.id;
         if (!userId) {
             res.status(400).json({
                 success: false,

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireUnblockedCustomer } from "../middleware/auth";
 import { deleteReview, getCustomerReviews, getProductReviews, ReviewError, saveReview } from "../services/reviews";
 
 const router = Router();
@@ -19,7 +19,7 @@ router.get("/product/:productId", async (req, res) => {
   }
 });
 
-router.post("/", requireAuth, async (req, res) => {
+router.post("/", requireAuth, requireUnblockedCustomer, async (req, res) => {
   try {
     const data = await saveReview(req.body, req.user!);
     res.json({ success: true, message: "Review saved successfully", data });

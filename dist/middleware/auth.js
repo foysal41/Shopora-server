@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireAuth = requireAuth;
+exports.requireAdmin = requireAdmin;
+exports.requireUnblockedCustomer = requireUnblockedCustomer;
 const prisma_1 = require("../lib/prisma");
 function getSessionToken(req) {
     const authorization = req.header("authorization");
@@ -35,7 +37,7 @@ async function requireAuth(req, res, next) {
             where: { token },
             include: { users: true },
         });
-        if (!session || session.expiresAt <= new Date()) {
+        if (!session || session.expiresAt <= new Date() || session.users.isDeleted) {
             res.status(401).json({ success: false, message: "Invalid or expired session" });
             return;
         }
@@ -46,4 +48,22 @@ async function requireAuth(req, res, next) {
         console.error("AUTHENTICATION ERROR:", error);
         res.status(500).json({ success: false, message: "Authentication failed" });
     }
+}
+function requireAdmin(req, res, next) {
+    if (req.user?.role !== "Admin") {
+        res.status(403).json({ success: false, message: "Admin access required" });
+        return;
+    }
+    next();
+}
+function requireUnblockedCustomer(req, res, next) {
+    if (req.user?.role !== "Customer") {
+        res.status(403).json({ success: false, message: "Only customers can perform this action" });
+        return;
+    }
+    if (req.user.isBlocked) {
+        res.status(403).json({ success: false, message: "You are blocked by the authority." });
+        return;
+    }
+    next();
 }

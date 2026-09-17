@@ -5,9 +5,9 @@ const orders_1 = require("../services/orders");
 const auth_1 = require("../middleware/auth");
 const router = (0, express_1.Router)();
 // ================= CREATE ORDER =================
-router.post("/", async (req, res) => {
+router.post("/", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req, res) => {
     try {
-        const order = await (0, orders_1.createOrder)(req.body);
+        const order = await (0, orders_1.createOrder)({ ...req.body, customerId: req.user.id });
         res.status(201).json({
             success: true,
             message: "Order created successfully",
