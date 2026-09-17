@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import type { AuthenticatedUser } from "../types/express";
 
-function getSessionToken(req: Request) {
+export function getSessionToken(req: Request) {
   const authorization = req.header("authorization");
   if (authorization?.startsWith("Bearer ")) {
     return authorization.slice(7).trim();
@@ -74,6 +74,27 @@ export function requireUnblockedCustomer(req: Request, res: Response, next: Next
   if (req.user.isBlocked) {
     res.status(403).json({ success: false, message: "You are blocked by the authority." });
     return;
+  }
+  next();
+}
+
+export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const token = getSessionToken(req);
+  if (!token) {
+    next();
+    return;
+  }
+
+  try {
+    const session = await prisma.sessions.findUnique({
+      where: { token },
+      include: { users: true },
+    });
+    if (session && session.expiresAt > new Date() && !session.users.isDeleted) {
+      req.user = session.users as AuthenticatedUser;
+    }
+  } catch (error) {
+    console.error("OPTIONAL AUTHENTICATION ERROR:", error);
   }
   next();
 }

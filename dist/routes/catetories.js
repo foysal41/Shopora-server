@@ -1,95 +1,78 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
 const categories_1 = require("../services/categories");
 const router = (0, express_1.Router)();
-router.get("/", async (req, res) => {
+function categoryErrorStatus(error) {
+    if (!(error instanceof categories_1.CategoryError))
+        return 500;
+    if (error.code === "not-found")
+        return 404;
+    if (error.code === "duplicate" || error.code === "has-products")
+        return 409;
+    return 400;
+}
+function sendCategoryError(res, error, fallback) {
+    const status = categoryErrorStatus(error);
+    res.status(status).json({
+        success: false,
+        message: error instanceof categories_1.CategoryError ? error.message : fallback,
+        errors: [],
+    });
+}
+router.get("/", auth_1.optionalAuth, async (req, res) => {
     try {
-        const categories = await (0, categories_1.getCategories)();
-        res.status(200).json({
-            success: true,
-            message: "Categories Fetched Successfully",
-            data: categories
+        const userIsAdmin = req.user?.role === "Admin";
+        const categories = await (0, categories_1.getCategories)({
+            search: typeof req.query.search === "string" ? req.query.search : undefined,
+            status: userIsAdmin && typeof req.query.status === "string" ? req.query.status : "ACTIVE",
+            includeInactive: userIsAdmin,
         });
+        res.status(200).json({ success: true, message: "Categories fetched successfully", data: categories });
     }
-    catch (err) {
-        console.error(err);
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch categories"
-        });
+    catch (error) {
+        sendCategoryError(res, error, "Failed to fetch categories");
     }
 });
-router.post("/", async (req, res) => {
+router.post("/", auth_1.requireAuth, auth_1.requireAdmin, async (req, res) => {
     try {
-        const categories = await (0, categories_1.createCategories)(req.body);
-        res.status(200).json({
-            success: true,
-            message: "Category Created Successfully",
-            data: categories
-        });
+        const category = await (0, categories_1.createCategory)(req.body);
+        res.status(201).json({ success: true, message: "Category created successfully", data: category });
     }
-    catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Failed to create category",
-            error: err?.message
-        });
+    catch (error) {
+        sendCategoryError(res, error, "Failed to create category");
     }
 });
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", auth_1.requireAuth, auth_1.requireAdmin, async (req, res) => {
     try {
-        const category = await (0, categories_1.updateCategories)(req.params.id, req.body);
-        res.status(200).json({
-            success: true,
-            message: "Category updated successfully",
-            data: category,
-        });
+        const category = await (0, categories_1.updateCategory)(String(req.params.id), req.body);
+        res.status(200).json({ success: true, message: "Category updated successfully", data: category });
     }
-    catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Failed to update category"
-        });
+    catch (error) {
+        sendCategoryError(res, error, "Failed to update category");
     }
 });
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth_1.requireAuth, auth_1.requireAdmin, async (req, res) => {
     try {
-        const category = await (0, categories_1.deleteCategories)(req.params.id);
-        res.status(200).json({
-            success: true,
-            message: "Category deleted successfully",
-            data: category
-        });
+        await (0, categories_1.deleteCategory)(String(req.params.id));
+        res.status(200).json({ success: true, message: "Category deleted successfully", data: null });
     }
-    catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Failed to delete category",
-        });
+    catch (error) {
+        sendCategoryError(res, error, "Failed to delete category");
     }
 });
-router.get("/:id", async (req, res) => {
+router.get("/:id", auth_1.optionalAuth, async (req, res) => {
     try {
-        const category = await (0, categories_1.getCategoryById)(req.params.id);
+        const category = await (0, categories_1.getCategoryById)(String(req.params.id), req.user?.role === "Admin");
         if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: "Category not found",
-            });
+            res.status(404).json({ success: false, message: "Category not found", errors: [] });
+            return;
         }
-        res.status(200).json({
-            success: true,
-            message: "Category fetched successfully",
-            data: category,
-        });
+        res.status(200).json({ success: true, message: "Category fetched successfully", data: category });
     }
-    catch (err) {
-        console.error(err);
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch category",
-        });
+    catch (error) {
+        sendCategoryError(res, error, "Failed to fetch category");
     }
 });
 exports.default = router;

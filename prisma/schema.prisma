@@ -132,6 +132,8 @@ model Categories {
   updatedAt   DateTime  @updatedAt
   image       String?
   products    Product[]
+
+  @@index([status])
 }
 
 model Brands {
