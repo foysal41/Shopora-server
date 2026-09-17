@@ -1,140 +1,39 @@
-import { Router } from "express";
-import {
-  getNotificationsByUser,
-  getUnreadCount,
-  markAsRead,
-  markAllAsRead,
-  deleteNotification,
-} from "../services/notifications";
+import { Router, type Response } from "express";
+import { requireAuth } from "../middleware/auth";
+import { NotificationError, deleteNotification, getNotificationsByUser, getUnreadCount, markAllAsRead, markAsRead } from "../services/notifications";
 
 const router = Router();
-
-/* =========================================================
-   GET /api/v1/notifications/:userId
-   List all notifications for a user
-========================================================= */
-
-router.get("/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const notifications = await getNotificationsByUser(userId);
-
-    res.status(200).json({
-      success: true,
-      message: "Notifications fetched successfully",
-      data: notifications,
-    });
-  } catch (err: any) {
-    console.error("GET NOTIFICATIONS ERROR:", err);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch notifications",
-    });
-  }
-});
-
-/* =========================================================
-   GET /api/v1/notifications/:userId/unread-count
-========================================================= */
+router.use(requireAuth);
+function sendError(res: Response, error: unknown, fallback: string) {
+  const status = error instanceof NotificationError ? error.code === "not-found" ? 404 : 422 : 500;
+  res.status(status).json({ success: false, message: error instanceof NotificationError ? error.message : fallback, errors: [] });
+}
+function queryOptions(query: Record<string, unknown>) {
+  const isRead = query.isRead === undefined ? undefined : query.isRead === "true";
+  return { page: Number(query.page) || 1, limit: Number(query.limit) || 20, isRead, type: typeof query.type === "string" ? query.type : undefined, startDate: typeof query.startDate === "string" ? new Date(query.startDate) : undefined, endDate: typeof query.endDate === "string" ? new Date(query.endDate) : undefined };
+}
 
 router.get("/:userId/unread-count", async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const count = await getUnreadCount(userId);
-
-    res.status(200).json({
-      success: true,
-      message: "Unread count fetched successfully",
-      data: { count },
-    });
-  } catch (err: any) {
-    console.error("GET UNREAD COUNT ERROR:", err);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch unread count",
-    });
-  }
+  if (req.user!.role !== "Admin" && req.user!.id !== String(req.params.userId)) return res.status(403).json({ success: false, message: "You can only access your own notifications" });
+  try { res.json({ success: true, message: "Unread count fetched successfully", data: { count: await getUnreadCount(String(req.params.userId)) } }); }
+  catch (error) { sendError(res, error, "Failed to fetch unread count"); }
 });
-
-/* =========================================================
-   PATCH /api/v1/notifications/:id/read
-   Mark one notification as read
-========================================================= */
-
-router.patch("/:id/read", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const notification = await markAsRead(id);
-
-    res.status(200).json({
-      success: true,
-      message: "Notification marked as read",
-      data: notification,
-    });
-  } catch (err: any) {
-    console.error("MARK AS READ ERROR:", err);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to update notification",
-    });
-  }
+router.get("/:userId", async (req, res) => {
+  if (req.user!.role !== "Admin" && req.user!.id !== String(req.params.userId)) return res.status(403).json({ success: false, message: "You can only access your own notifications" });
+  try { res.json({ success: true, message: "Notifications fetched successfully", ...await getNotificationsByUser(String(req.params.userId), queryOptions(req.query as Record<string, unknown>)) }); }
+  catch (error) { sendError(res, error, "Failed to fetch notifications"); }
 });
-
-/* =========================================================
-   PATCH /api/v1/notifications/:userId/read-all
-   Mark all of a user's notifications as read
-========================================================= */
-
 router.patch("/:userId/read-all", async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const result = await markAllAsRead(userId);
-
-    res.status(200).json({
-      success: true,
-      message: "All notifications marked as read",
-      data: result,
-    });
-  } catch (err: any) {
-    console.error("MARK ALL AS READ ERROR:", err);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to update notifications",
-    });
-  }
+  if (req.user!.role !== "Admin" && req.user!.id !== String(req.params.userId)) return res.status(403).json({ success: false, message: "You can only update your own notifications" });
+  try { res.json({ success: true, message: "All notifications marked as read", data: await markAllAsRead(String(req.params.userId)) }); }
+  catch (error) { sendError(res, error, "Failed to update notifications"); }
 });
-
-/* =========================================================
-   DELETE /api/v1/notifications/:id
-========================================================= */
-
+router.patch("/:id/read", async (req, res) => {
+  try { res.json({ success: true, message: "Notification marked as read", data: await markAsRead(String(req.params.id), req.user!.id) }); }
+  catch (error) { sendError(res, error, "Failed to update notification"); }
+});
 router.delete("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const notification = await deleteNotification(id);
-
-    res.status(200).json({
-      success: true,
-      message: "Notification deleted successfully",
-      data: notification,
-    });
-  } catch (err: any) {
-    console.error("DELETE NOTIFICATION ERROR:", err);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete notification",
-    });
-  }
+  try { res.json({ success: true, message: "Notification deleted successfully", data: await deleteNotification(String(req.params.id), req.user!.id) }); }
+  catch (error) { sendError(res, error, "Failed to delete notification"); }
 });
-
 export default router;

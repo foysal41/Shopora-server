@@ -65,6 +65,7 @@ model users {
   accounts         accounts[]
   sessions         sessions[]
   reviews          Review[]
+  createdCoupons   Coupon[]         @relation("CouponCreatedBy")
 }
 
 model Notification {
@@ -75,10 +76,15 @@ model Notification {
   title     String
   message   String
   link      String?
+  targetRole String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([targetRole])
 }
 
 model verifications {
@@ -264,8 +270,18 @@ model Coupon {
   discountType DiscountType
   amount       Float
   expiryDate   DateTime
+  usageCount   Int          @default(0)
+  usageLimit   Int?
+  status       String       @default("ACTIVE")
+  createdById  String?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+  createdBy    users?       @relation("CouponCreatedBy", fields: [createdById], references: [id])
+
+  @@index([couponCode])
+  @@index([expiryDate])
+  @@index([status])
+  @@index([createdById])
 }
 
 enum UserRole {

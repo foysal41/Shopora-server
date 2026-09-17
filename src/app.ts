@@ -19,6 +19,9 @@ import reviewsRouter from "./routes/reviews";
 import adminCustomersRouter from "./routes/adminCustomers";
 import adminProductsRouter from "./routes/adminProducts";
 import accountRouter from "./routes/account";
+import adminCouponsRouter from "./routes/adminCoupons";
+import adminNotificationsRouter from "./routes/adminNotifications";
+import adminReportsRouter from "./routes/adminReports";
 const app = express();
 
 
@@ -51,6 +54,9 @@ app.use("/api/v1/payment-methods", paymentMethodsRouter);
 app.use("/api/v1/reviews", reviewsRouter);
 app.use("/api/v1/admin/customers", adminCustomersRouter);
 app.use("/api/v1/admin/products", adminProductsRouter);
+app.use("/api/v1/admin/coupons", adminCouponsRouter);
+app.use("/api/v1/admin/notifications", adminNotificationsRouter);
+app.use("/api/v1/admin/reports", adminReportsRouter);
 app.use("/api/v1/account", accountRouter);
 
 

@@ -174,8 +174,10 @@ exports.NotificationScalarFieldEnum = {
     title: 'title',
     message: 'message',
     link: 'link',
+    targetRole: 'targetRole',
     isRead: 'isRead',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
 };
 exports.VerificationsScalarFieldEnum = {
     id: 'id',
@@ -311,6 +313,10 @@ exports.CouponScalarFieldEnum = {
     discountType: 'discountType',
     amount: 'amount',
     expiryDate: 'expiryDate',
+    usageCount: 'usageCount',
+    usageLimit: 'usageLimit',
+    status: 'status',
+    createdById: 'createdById',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

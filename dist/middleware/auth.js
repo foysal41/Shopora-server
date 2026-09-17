@@ -22,7 +22,14 @@ function getSessionToken(req) {
         if (separator < 0)
             continue;
         const name = cookie.slice(0, separator).trim();
-        if (!name.toLowerCase().includes("session_token") && name !== "sessionToken")
+        const normalizedName = name.toLowerCase();
+        const isSessionCookie = normalizedName === "sessiontoken"
+            || normalizedName === "session_token"
+            || normalizedName === "better-auth.session_token"
+            || normalizedName === "__secure-better-auth.session_token"
+            || normalizedName === "better-auth.session-token"
+            || normalizedName === "__secure-better-auth.session-token";
+        if (!isSessionCookie)
             continue;
         return decodeURIComponent(cookie.slice(separator + 1).trim());
     }
