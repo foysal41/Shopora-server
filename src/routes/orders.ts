@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { createOrder, getCustomerOrders } from "../services/orders";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
@@ -30,7 +31,7 @@ router.post("/", async (req, res) => {
 
 // GET CUSTOMER ORDERS
 
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
     const { customerId } = req.query;
 
@@ -39,6 +40,10 @@ router.get("/", async (req, res) => {
         success: false,
         message: "customerId is required",
       });
+    }
+
+    if (req.user!.role !== "Admin" && req.user!.id !== customerId) {
+      return res.status(403).json({ success: false, message: "You can only access your own orders" });
     }
 
     const orders = await getCustomerOrders(customerId);

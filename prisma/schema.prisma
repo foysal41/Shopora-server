@@ -44,36 +44,35 @@ model sessions {
 }
 
 model users {
-  id               String       @id
+  id               String          @id
   name             String
-  email            String       @unique
-  emailVerified    Boolean      @default(false)
+  email            String          @unique
+  emailVerified    Boolean         @default(false)
   image            String?
-  role             UserRole     @default(Customer)
+  role             UserRole        @default(Customer)
   createdAt        DateTime
   updatedAt        DateTime
   stripeCustomerId String?
   addresses        Address[]
-  notifications Notification[]
-  customerOrders   Order[]      @relation("CustomerOrders")
-  sellerOrders     OrderItems[] @relation("SellerOrderItems")
+  notifications    Notification[]
+  customerOrders   Order[]         @relation("CustomerOrders")
+  sellerOrders     OrderItems[]    @relation("SellerOrderItems")
   product          Product[]
   wishlist         Wishlist[]
   paymentMethods   PaymentMethod[]
   accounts         accounts[]
   sessions         sessions[]
+  reviews          Review[]
 }
-
-
 
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  users     users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      String
   title     String
   message   String
-  link      String? 
+  link      String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -109,6 +108,8 @@ model Product {
   status           String       @default("DRAFT")
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+  rating           Float        @default(0)
+  reviews          Int          @default(0)
   CategoriesId     String?
   BrandsId         String?
   sellerId         String
@@ -117,6 +118,7 @@ model Product {
   Categories       Categories?  @relation(fields: [CategoriesId], references: [id])
   seller           users        @relation(fields: [sellerId], references: [id])
   wishlistedBy     Wishlist[]
+  reviewsReceived  Review[]
 }
 
 model Categories {
@@ -152,6 +154,23 @@ model Wishlist {
   @@unique([userId, productId])
   @@index([userId])
   @@index([productId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  productId  String
+  customerId String
+  rating     Int
+  comment    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  product  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer users   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, customerId])
+  @@index([productId])
+  @@index([customerId])
 }
 
 model Address {

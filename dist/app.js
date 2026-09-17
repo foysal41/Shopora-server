@@ -20,8 +20,9 @@ const address_1 = __importDefault(require("./routes/address"));
 const sellerDashboard_1 = __importDefault(require("./routes/sellerDashboard"));
 const notifications_1 = __importDefault(require("./routes/notifications"));
 const paymentMethods_1 = __importDefault(require("./routes/paymentMethods"));
+const reviews_1 = __importDefault(require("./routes/reviews"));
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({ origin: true, credentials: true }));
 app.use(express_1.default.json());
 app.get("/", (req, res) => {
     res.json({
@@ -44,4 +45,5 @@ app.use('/api/v1/addresses', address_1.default);
 app.use("/api/v1/seller/dashboard", sellerDashboard_1.default);
 app.use("/api/v1/notifications", notifications_1.default);
 app.use("/api/v1/payment-methods", paymentMethods_1.default);
+app.use("/api/v1/reviews", reviews_1.default);
 exports.default = app;

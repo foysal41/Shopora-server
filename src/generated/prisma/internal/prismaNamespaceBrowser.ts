@@ -60,6 +60,7 @@ export const ModelName = {
   Categories: 'Categories',
   Brands: 'Brands',
   Wishlist: 'Wishlist',
+  Review: 'Review',
   Address: 'Address',
   PaymentMethod: 'PaymentMethod',
   Order: 'Order',
@@ -175,6 +176,8 @@ export const ProductScalarFieldEnum = {
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  rating: 'rating',
+  reviews: 'reviews',
   CategoriesId: 'CategoriesId',
   BrandsId: 'BrandsId',
   sellerId: 'sellerId'
@@ -217,6 +220,19 @@ export const WishlistScalarFieldEnum = {
 } as const
 
 export type WishlistScalarFieldEnum = (typeof WishlistScalarFieldEnum)[keyof typeof WishlistScalarFieldEnum]
+
+
+export const ReviewScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  customerId: 'customerId',
+  rating: 'rating',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
 
 
 export const AddressScalarFieldEnum = {

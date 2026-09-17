@@ -15,10 +15,11 @@ import addressRoutes from "./routes/address";
 import sellerDashboardRouter from "./routes/sellerDashboard";
 import notificationsRouter from "./routes/notifications";
 import paymentMethodsRouter from "./routes/paymentMethods";
+import reviewsRouter from "./routes/reviews";
 const app = express();
 
 
-app.use(cors())
+app.use(cors({ origin: true, credentials: true }))
 app.use(express.json())
 
 
@@ -44,6 +45,7 @@ app.use('/api/v1/addresses', addressRoutes);
 app.use("/api/v1/seller/dashboard", sellerDashboardRouter);
 app.use("/api/v1/notifications", notificationsRouter);
 app.use("/api/v1/payment-methods", paymentMethodsRouter);
+app.use("/api/v1/reviews", reviewsRouter);
 
 
 export default app
