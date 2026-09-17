@@ -142,8 +142,10 @@ export const NotificationScalarFieldEnum = {
   title: 'title',
   message: 'message',
   link: 'link',
+  targetRole: 'targetRole',
   isRead: 'isRead',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
@@ -323,6 +325,10 @@ export const CouponScalarFieldEnum = {
   discountType: 'discountType',
   amount: 'amount',
   expiryDate: 'expiryDate',
+  usageCount: 'usageCount',
+  usageLimit: 'usageLimit',
+  status: 'status',
+  createdById: 'createdById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
