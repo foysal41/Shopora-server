@@ -2,11 +2,30 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireAuth = requireAuth;
 const prisma_1 = require("../lib/prisma");
-async function requireAuth(req, res, next) {
+function getSessionToken(req) {
     const authorization = req.header("authorization");
-    const token = authorization?.startsWith("Bearer ")
-        ? authorization.slice(7).trim()
-        : undefined;
+    if (authorization?.startsWith("Bearer ")) {
+        return authorization.slice(7).trim();
+    }
+    const sessionHeader = req.header("x-session-token") || req.header("x-auth-token");
+    if (sessionHeader)
+        return sessionHeader.trim();
+    const cookieHeader = req.header("cookie");
+    if (!cookieHeader)
+        return undefined;
+    for (const cookie of cookieHeader.split(";")) {
+        const separator = cookie.indexOf("=");
+        if (separator < 0)
+            continue;
+        const name = cookie.slice(0, separator).trim();
+        if (!name.toLowerCase().includes("session_token") && name !== "sessionToken")
+            continue;
+        return decodeURIComponent(cookie.slice(separator + 1).trim());
+    }
+    return undefined;
+}
+async function requireAuth(req, res, next) {
+    const token = getSessionToken(req);
     if (!token) {
         res.status(401).json({ success: false, message: "Authentication required" });
         return;

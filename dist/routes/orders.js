@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const orders_1 = require("../services/orders");
+const auth_1 = require("../middleware/auth");
 const router = (0, express_1.Router)();
 // ================= CREATE ORDER =================
 router.post("/", async (req, res) => {
@@ -22,7 +23,7 @@ router.post("/", async (req, res) => {
     }
 });
 // GET CUSTOMER ORDERS
-router.get("/", async (req, res) => {
+router.get("/", auth_1.requireAuth, async (req, res) => {
     try {
         const { customerId } = req.query;
         if (!customerId || typeof customerId !== "string") {
@@ -30,6 +31,9 @@ router.get("/", async (req, res) => {
                 success: false,
                 message: "customerId is required",
             });
+        }
+        if (req.user.role !== "Admin" && req.user.id !== customerId) {
+            return res.status(403).json({ success: false, message: "You can only access your own orders" });
         }
         const orders = await (0, orders_1.getCustomerOrders)(customerId);
         res.status(200).json({

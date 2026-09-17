@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.CouponScalarFieldEnum = exports.OrderItemsScalarFieldEnum = exports.OrderScalarFieldEnum = exports.PaymentMethodScalarFieldEnum = exports.AddressScalarFieldEnum = exports.WishlistScalarFieldEnum = exports.BrandsScalarFieldEnum = exports.CategoriesScalarFieldEnum = exports.ProductScalarFieldEnum = exports.VerificationsScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.UsersScalarFieldEnum = exports.SessionsScalarFieldEnum = exports.AccountsScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.CouponScalarFieldEnum = exports.OrderItemsScalarFieldEnum = exports.OrderScalarFieldEnum = exports.PaymentMethodScalarFieldEnum = exports.AddressScalarFieldEnum = exports.ReviewScalarFieldEnum = exports.WishlistScalarFieldEnum = exports.BrandsScalarFieldEnum = exports.CategoriesScalarFieldEnum = exports.ProductScalarFieldEnum = exports.VerificationsScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.UsersScalarFieldEnum = exports.SessionsScalarFieldEnum = exports.AccountsScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
  * Prisma Errors
@@ -112,6 +112,7 @@ exports.ModelName = {
     Categories: 'Categories',
     Brands: 'Brands',
     Wishlist: 'Wishlist',
+    Review: 'Review',
     Address: 'Address',
     PaymentMethod: 'PaymentMethod',
     Order: 'Order',
@@ -199,6 +200,8 @@ exports.ProductScalarFieldEnum = {
     status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
+    rating: 'rating',
+    reviews: 'reviews',
     CategoriesId: 'CategoriesId',
     BrandsId: 'BrandsId',
     sellerId: 'sellerId'
@@ -226,6 +229,15 @@ exports.WishlistScalarFieldEnum = {
     userId: 'userId',
     productId: 'productId',
     createdAt: 'createdAt'
+};
+exports.ReviewScalarFieldEnum = {
+    id: 'id',
+    productId: 'productId',
+    customerId: 'customerId',
+    rating: 'rating',
+    comment: 'comment',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
 };
 exports.AddressScalarFieldEnum = {
     id: 'id',

@@ -63,6 +63,11 @@ export type Brands = Prisma.BrandsModel
  */
 export type Wishlist = Prisma.WishlistModel
 /**
+ * Model Review
+ * 
+ */
+export type Review = Prisma.ReviewModel
+/**
  * Model Address
  * 
  */

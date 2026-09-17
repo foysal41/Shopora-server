@@ -40,7 +40,16 @@ export const getCustomerOrders = async (customerId: string) => {
       items: {
         include: {
           product: {
-            select: { id: true, name: true, images: true },
+            select: {
+              id: true,
+              name: true,
+              images: true,
+              reviewsReceived: {
+                where: { customerId },
+                select: { id: true, rating: true, comment: true, createdAt: true },
+                take: 1,
+              },
+            },
           },
         },
       },
@@ -54,11 +63,13 @@ export const getCustomerOrders = async (customerId: string) => {
     status: order.orderStatus,
     total: order.total,
     createdAt: order.createdAt,
-    items: order.items.map((item) => ({
+      items: order.items.map((item) => ({
+      productId: item.productId,
       productName: item.productName,
       productImage: item.product?.images?.[0] || null,
       quantity: item.quantity,
       price: item.price,
+      review: item.product?.reviewsReceived[0] || null,
     })),
   }));
 };
