@@ -17,6 +17,7 @@ import notificationsRouter from "./routes/notifications";
 import paymentMethodsRouter from "./routes/paymentMethods";
 import reviewsRouter from "./routes/reviews";
 import adminCustomersRouter from "./routes/adminCustomers";
+import adminProductsRouter from "./routes/adminProducts";
 const app = express();
 
 
@@ -48,6 +49,7 @@ app.use("/api/v1/notifications", notificationsRouter);
 app.use("/api/v1/payment-methods", paymentMethodsRouter);
 app.use("/api/v1/reviews", reviewsRouter);
 app.use("/api/v1/admin/customers", adminCustomersRouter);
+app.use("/api/v1/admin/products", adminProductsRouter);
 
 
 export default app
