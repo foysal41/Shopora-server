@@ -44,7 +44,7 @@ export async function requireAuth(
       include: { users: true },
     });
 
-    if (!session || session.expiresAt <= new Date()) {
+    if (!session || session.expiresAt <= new Date() || session.users.isDeleted) {
       res.status(401).json({ success: false, message: "Invalid or expired session" });
       return;
     }
@@ -55,4 +55,24 @@ export async function requireAuth(
     console.error("AUTHENTICATION ERROR:", error);
     res.status(500).json({ success: false, message: "Authentication failed" });
   }
+}
+
+export function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.user?.role !== "Admin") {
+    res.status(403).json({ success: false, message: "Admin access required" });
+    return;
+  }
+  next();
+}
+
+export function requireUnblockedCustomer(req: Request, res: Response, next: NextFunction) {
+  if (req.user?.role !== "Customer") {
+    res.status(403).json({ success: false, message: "Only customers can perform this action" });
+    return;
+  }
+  if (req.user.isBlocked) {
+    res.status(403).json({ success: false, message: "You are blocked by the authority." });
+    return;
+  }
+  next();
 }

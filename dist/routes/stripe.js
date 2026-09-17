@@ -4,8 +4,9 @@ const express_1 = require("express");
 const stripe_1 = require("../services/stripe");
 const stripe_2 = require("../lib/stripe");
 const prisma_1 = require("../lib/prisma");
+const auth_1 = require("../middleware/auth");
 const router = (0, express_1.Router)();
-router.post("/create-checkout-session", async (req, res) => {
+router.post("/create-checkout-session", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req, res) => {
     try {
         const { items, customerId, shippingName, shippingPhone, shippingAddress, shippingCity, shippingPostalCode, shippingCountry, shippingFee, discount, } = req.body;
         if (!Array.isArray(items) || items.length === 0) {
@@ -14,15 +15,10 @@ router.post("/create-checkout-session", async (req, res) => {
                 message: "At least one product is required",
             });
         }
-        if (!customerId) {
-            return res.status(400).json({
-                success: false,
-                message: "Customer ID is required",
-            });
-        }
+        const authenticatedCustomerId = req.user.id;
         const session = await (0, stripe_1.createCheckoutSession)({
             items,
-            customerId,
+            customerId: authenticatedCustomerId,
             shippingName,
             shippingPhone,
             shippingAddress,
@@ -76,6 +72,16 @@ router.get("/verify-session", async (req, res) => {
                 success: false,
                 message: "Customer information is missing",
             });
+        }
+        const customer = await prisma_1.prisma.users.findUnique({
+            where: { id: metadata.customerId },
+            select: { isBlocked: true, isDeleted: true },
+        });
+        if (!customer || customer.isDeleted) {
+            return res.status(404).json({ success: false, message: "Customer not found" });
+        }
+        if (customer.isBlocked) {
+            return res.status(403).json({ success: false, message: "You are blocked by the authority." });
         }
         if (!metadata?.productId) {
             return res.status(400).json({

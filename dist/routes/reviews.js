@@ -18,7 +18,7 @@ router.get("/product/:productId", async (req, res) => {
         handleError(res, error, "Failed to fetch reviews");
     }
 });
-router.post("/", auth_1.requireAuth, async (req, res) => {
+router.post("/", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req, res) => {
     try {
         const data = await (0, reviews_1.saveReview)(req.body, req.user);
         res.json({ success: true, message: "Review saved successfully", data });

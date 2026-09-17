@@ -2,10 +2,11 @@ import { Router } from "express";
 import { createCheckoutSession } from "../services/stripe";
 import { stripe } from "../lib/stripe";
 import { prisma } from "../lib/prisma";
+import { requireAuth, requireUnblockedCustomer } from "../middleware/auth";
 
 const router = Router();
 
-router.post("/create-checkout-session", async (req, res) => {
+router.post("/create-checkout-session", requireAuth, requireUnblockedCustomer, async (req, res) => {
   try {
     const {
       items,
@@ -27,16 +28,11 @@ router.post("/create-checkout-session", async (req, res) => {
       });
     }
 
-    if (!customerId) {
-      return res.status(400).json({
-        success: false,
-        message: "Customer ID is required",
-      });
-    }
+    const authenticatedCustomerId = req.user!.id;
 
     const session = await createCheckoutSession({
       items,
-      customerId,
+      customerId: authenticatedCustomerId,
 
       shippingName,
       shippingPhone,
@@ -108,6 +104,17 @@ router.get("/verify-session", async (req, res) => {
         success: false,
         message: "Customer information is missing",
       });
+    }
+
+    const customer = await prisma.users.findUnique({
+      where: { id: metadata.customerId },
+      select: { isBlocked: true, isDeleted: true },
+    });
+    if (!customer || customer.isDeleted) {
+      return res.status(404).json({ success: false, message: "Customer not found" });
+    }
+    if (customer.isBlocked) {
+      return res.status(403).json({ success: false, message: "You are blocked by the authority." });
     }
 
     if (!metadata?.productId) {

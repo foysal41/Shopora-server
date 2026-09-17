@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { createOrder, getCustomerOrders } from "../services/orders";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireUnblockedCustomer } from "../middleware/auth";
 
 const router = Router();
 
 // ================= CREATE ORDER =================
 
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, requireUnblockedCustomer, async (req, res) => {
   try {
-    const order = await createOrder(req.body);
+    const order = await createOrder({ ...req.body, customerId: req.user!.id });
 
     res.status(201).json({
       success: true,
