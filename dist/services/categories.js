@@ -1,68 +1,140 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCategoryById = exports.deleteCategories = exports.updateCategories = exports.createCategories = exports.getCategories = void 0;
-const prisma_1 = require("../lib/prisma");
-const getCategories = async () => {
-    return await prisma_1.prisma.categories.findMany({
-        where: {
-            status: "Active",
-        },
-        include: {
-            _count: {
-                select: {
-                    products: true,
-                }
-            }
-        },
-        orderBy: {
-            createdAt: 'desc'
-        }
-    });
-};
+exports.CategoryError = exports.CATEGORY_STATUSES = void 0;
 exports.getCategories = getCategories;
-const createCategories = async (data) => {
-    return await prisma_1.prisma.categories.create({
-        data: {
-            name: data.name,
-            description: data.description,
-            image: data.image
-        }
-    });
-};
-exports.createCategories = createCategories;
-const updateCategories = async (id, data) => {
-    return await prisma_1.prisma.categories.update({
-        where: { id },
-        data,
-    });
-};
-exports.updateCategories = updateCategories;
-const deleteCategories = async (id) => {
-    return await prisma_1.prisma.categories.delete({
-        where: { id },
-    });
-};
-exports.deleteCategories = deleteCategories;
-const getCategoryById = async (id) => {
-    const category = await prisma_1.prisma.categories.findUnique({
-        where: { id },
-        include: {
-            products: {
-                orderBy: { createdAt: "desc" },
-            },
-        },
-    });
-    if (!category)
-        return null;
-    return {
-        id: category.id,
-        name: category.name,
-        description: category.description,
-        image: category.image,
-        status: category.status,
-        createdAt: category.createdAt,
-        productCount: category.products.length,
-        products: category.products,
-    };
-};
+exports.createCategory = createCategory;
+exports.updateCategory = updateCategory;
+exports.deleteCategory = deleteCategory;
 exports.getCategoryById = getCategoryById;
+const prisma_1 = require("../lib/prisma");
+exports.CATEGORY_STATUSES = ["ACTIVE", "INACTIVE"];
+const MAX_NAME_LENGTH = 80;
+const MAX_DESCRIPTION_LENGTH = 500;
+const MAX_IMAGE_LENGTH = 2048;
+const ACTIVE_STATUSES = ["ACTIVE", "Active"];
+const INACTIVE_STATUSES = ["INACTIVE", "Inactive"];
+class CategoryError extends Error {
+    code;
+    constructor(code, message) {
+        super(message);
+        this.code = code;
+    }
+}
+exports.CategoryError = CategoryError;
+function isRecord(value) {
+    return !!value && typeof value === "object" && !Array.isArray(value);
+}
+function normalizeStatus(value) {
+    if (typeof value !== "string")
+        throw new CategoryError("invalid", "Status must be ACTIVE or INACTIVE");
+    const status = value.trim().toUpperCase();
+    if (!exports.CATEGORY_STATUSES.includes(status)) {
+        throw new CategoryError("invalid", "Status must be ACTIVE or INACTIVE");
+    }
+    return status;
+}
+function normalizeOptionalText(value, field, maxLength) {
+    if (value === null)
+        return null;
+    if (typeof value !== "string")
+        throw new CategoryError("invalid", `${field} must be a string`);
+    const text = value.trim();
+    if (text.length > maxLength)
+        throw new CategoryError("invalid", `${field} must be ${maxLength} characters or fewer`);
+    return text || null;
+}
+function normalizeImage(value) {
+    const image = normalizeOptionalText(value, "image", MAX_IMAGE_LENGTH);
+    if (image === null)
+        return null;
+    try {
+        const url = new URL(image);
+        if (url.protocol !== "http:" && url.protocol !== "https:")
+            throw new Error();
+    }
+    catch {
+        throw new CategoryError("invalid", "image must be a valid HTTP or HTTPS URL");
+    }
+    return image;
+}
+function normalizeName(value) {
+    if (typeof value !== "string" || value.trim().length === 0)
+        throw new CategoryError("invalid", "Category name is required");
+    const name = value.trim();
+    if (name.length > MAX_NAME_LENGTH)
+        throw new CategoryError("invalid", `Category name must be ${MAX_NAME_LENGTH} characters or fewer`);
+    return name;
+}
+function categoryData(category) {
+    return { ...category, status: category.status.toUpperCase() === "ACTIVE" ? "ACTIVE" : "INACTIVE" };
+}
+const categoryInclude = { _count: { select: { products: true } } };
+async function ensureUniqueName(name, exceptId) {
+    const duplicate = await prisma_1.prisma.categories.findFirst({
+        where: { name: { equals: name, mode: "insensitive" }, ...(exceptId ? { id: { not: exceptId } } : {}) },
+        select: { id: true },
+    });
+    if (duplicate)
+        throw new CategoryError("duplicate", "A category with this name already exists");
+}
+async function getCategories(options = {}) {
+    const search = options.search?.trim();
+    const requestedStatus = options.status?.trim().toUpperCase();
+    if (requestedStatus && !exports.CATEGORY_STATUSES.includes(requestedStatus)) {
+        throw new CategoryError("invalid", "Status must be ACTIVE or INACTIVE");
+    }
+    const statusFilter = requestedStatus
+        ? requestedStatus === "ACTIVE" ? { in: ACTIVE_STATUSES } : { in: INACTIVE_STATUSES }
+        : options.includeInactive ? undefined : { in: ACTIVE_STATUSES };
+    const categories = await prisma_1.prisma.categories.findMany({
+        where: { ...(statusFilter ? { status: statusFilter } : {}), ...(search ? { name: { contains: search, mode: "insensitive" } } : {}) },
+        include: categoryInclude,
+        orderBy: { createdAt: "desc" },
+    });
+    return categories.map(categoryData);
+}
+async function createCategory(input) {
+    if (!isRecord(input))
+        throw new CategoryError("invalid", "Request body is required");
+    const name = normalizeName(input.name);
+    const description = input.description === undefined ? null : normalizeOptionalText(input.description, "description", MAX_DESCRIPTION_LENGTH);
+    const image = input.image === undefined ? null : normalizeImage(input.image);
+    const status = input.status === undefined ? "ACTIVE" : normalizeStatus(input.status);
+    await ensureUniqueName(name);
+    const category = await prisma_1.prisma.categories.create({ data: { name, description, image, status }, include: categoryInclude });
+    return categoryData(category);
+}
+async function updateCategory(id, input) {
+    if (!isRecord(input))
+        throw new CategoryError("invalid", "Request body is required");
+    const existing = await prisma_1.prisma.categories.findUnique({ where: { id }, select: { id: true } });
+    if (!existing)
+        throw new CategoryError("not-found", "Category not found");
+    const data = {};
+    if (input.name !== undefined)
+        data.name = normalizeName(input.name);
+    if (input.description !== undefined)
+        data.description = normalizeOptionalText(input.description, "description", MAX_DESCRIPTION_LENGTH);
+    if (input.image !== undefined)
+        data.image = normalizeImage(input.image);
+    if (input.status !== undefined)
+        data.status = normalizeStatus(input.status);
+    if (Object.keys(data).length === 0)
+        throw new CategoryError("invalid", "At least one category field is required");
+    if (data.name)
+        await ensureUniqueName(data.name, id);
+    const category = await prisma_1.prisma.categories.update({ where: { id }, data, include: categoryInclude });
+    return categoryData(category);
+}
+async function deleteCategory(id) {
+    const category = await prisma_1.prisma.categories.findUnique({ where: { id }, include: { _count: { select: { products: true } } } });
+    if (!category)
+        throw new CategoryError("not-found", "Category not found");
+    if (category._count.products > 0)
+        throw new CategoryError("has-products", "This category contains products. Move or remove those products before deleting it.");
+    await prisma_1.prisma.categories.delete({ where: { id } });
+}
+async function getCategoryById(id, includeInactive = false) {
+    const category = await prisma_1.prisma.categories.findFirst({ where: { id, ...(includeInactive ? {} : { status: { in: ACTIVE_STATUSES } }) }, include: categoryInclude });
+    return category ? categoryData(category) : null;
+}

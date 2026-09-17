@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getSessionToken = getSessionToken;
 exports.requireAuth = requireAuth;
 exports.requireAdmin = requireAdmin;
 exports.requireUnblockedCustomer = requireUnblockedCustomer;
+exports.optionalAuth = optionalAuth;
 const prisma_1 = require("../lib/prisma");
 function getSessionToken(req) {
     const authorization = req.header("authorization");
@@ -64,6 +66,26 @@ function requireUnblockedCustomer(req, res, next) {
     if (req.user.isBlocked) {
         res.status(403).json({ success: false, message: "You are blocked by the authority." });
         return;
+    }
+    next();
+}
+async function optionalAuth(req, _res, next) {
+    const token = getSessionToken(req);
+    if (!token) {
+        next();
+        return;
+    }
+    try {
+        const session = await prisma_1.prisma.sessions.findUnique({
+            where: { token },
+            include: { users: true },
+        });
+        if (session && session.expiresAt > new Date() && !session.users.isDeleted) {
+            req.user = session.users;
+        }
+    }
+    catch (error) {
+        console.error("OPTIONAL AUTHENTICATION ERROR:", error);
     }
     next();
 }

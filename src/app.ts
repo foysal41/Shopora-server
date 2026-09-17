@@ -18,6 +18,7 @@ import paymentMethodsRouter from "./routes/paymentMethods";
 import reviewsRouter from "./routes/reviews";
 import adminCustomersRouter from "./routes/adminCustomers";
 import adminProductsRouter from "./routes/adminProducts";
+import accountRouter from "./routes/account";
 const app = express();
 
 
@@ -50,6 +51,7 @@ app.use("/api/v1/payment-methods", paymentMethodsRouter);
 app.use("/api/v1/reviews", reviewsRouter);
 app.use("/api/v1/admin/customers", adminCustomersRouter);
 app.use("/api/v1/admin/products", adminProductsRouter);
+app.use("/api/v1/account", accountRouter);
 
 
 export default app
