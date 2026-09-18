@@ -85,6 +85,43 @@ export function requireUnblockedCustomer(req: Request, res: Response, next: Next
   next();
 }
 
+export async function requireSellerProductAccess(req: Request, res: Response, next: NextFunction) {
+  if (req.user?.role === "Admin") {
+    next();
+    return;
+  }
+
+  if (req.user?.role !== "Seller") {
+    res.status(403).json({ success: false, message: "Seller access required" });
+    return;
+  }
+
+  try {
+    const seller = await prisma.users.findUnique({
+      where: { id: req.user.id },
+      select: { role: true, isBlocked: true, isDeleted: true },
+    });
+
+    if (!seller || seller.isDeleted || seller.role !== "Seller") {
+      res.status(403).json({ success: false, message: "Seller access required" });
+      return;
+    }
+
+    if (seller.isBlocked) {
+      res.status(403).json({
+        success: false,
+        message: "Your seller account is blocked. You cannot publish or modify products.",
+      });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    console.error("SELLER AUTHORIZATION ERROR:", error);
+    res.status(500).json({ success: false, message: "Authorization failed" });
+  }
+}
+
 export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
   const token = getSessionToken(req);
   if (!token) {
