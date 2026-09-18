@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createProduct, deleteProduct, getNewArrivals, getProductById, getProducts, updateProduct } from "../services/products";
 import { searchProducts } from "../services/search";
+import { requireAuth, requireSellerProductAccess } from "../middleware/auth";
 const router = Router();
 
 
@@ -103,9 +104,12 @@ router.get("/" , async(req, res)=>{
 
 
 
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, requireSellerProductAccess, async (req, res) => {
   try {
-    const product = await createProduct(req.body);
+    const product = await createProduct({
+      ...req.body,
+      sellerId: req.user?.role === "Seller" ? req.user.id : req.body.sellerId,
+    });
 
     res.status(201).json({
       success: true,
@@ -125,10 +129,10 @@ router.post("/", async (req, res) => {
 
 
 
-router.patch("/:id" , async(req, res) => {
+router.patch("/:id", requireAuth, requireSellerProductAccess, async(req, res) => {
     try{
         const product = await updateProduct(
-            req.params.id,
+          String(req.params.id),
             req.body
         );
 
@@ -146,9 +150,9 @@ router.patch("/:id" , async(req, res) => {
 })
 
 
-router.delete("/:id" , async(req, res) =>{
+router.delete("/:id", requireAuth, requireSellerProductAccess, async(req, res) =>{
     try{
-        const product = await deleteProduct(req.params.id);
+        const product = await deleteProduct(String(req.params.id));
 
         res.status(200).json({
             success : true,

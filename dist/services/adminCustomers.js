@@ -50,9 +50,10 @@ async function getCustomers(search) {
 async function updateCustomerStatus(customerId, isBlocked) {
     const customer = await prisma_1.prisma.users.findUnique({ where: { id: customerId }, select: { role: true, isDeleted: true } });
     if (!customer || customer.isDeleted)
-        throw new AdminCustomerError("Customer not found", 404);
-    if (customer.role !== "Customer")
+        throw new AdminCustomerError("User not found", 404);
+    if (customer.role !== "Customer" && customer.role !== "Seller") {
         throw new AdminCustomerError("Admins cannot modify another admin", 403);
+    }
     return prisma_1.prisma.users.update({
         where: { id: customerId },
         data: { isBlocked },
@@ -62,9 +63,10 @@ async function updateCustomerStatus(customerId, isBlocked) {
 async function deleteCustomer(customerId) {
     const customer = await prisma_1.prisma.users.findUnique({ where: { id: customerId }, select: { role: true, isDeleted: true } });
     if (!customer || customer.isDeleted)
-        throw new AdminCustomerError("Customer not found", 404);
-    if (customer.role !== "Customer")
+        throw new AdminCustomerError("User not found", 404);
+    if (customer.role !== "Customer" && customer.role !== "Seller") {
         throw new AdminCustomerError("Admins cannot delete another admin", 403);
+    }
     await prisma_1.prisma.users.update({
         where: { id: customerId },
         data: { isDeleted: true, isBlocked: true },

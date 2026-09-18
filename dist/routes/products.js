@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const products_1 = require("../services/products");
 const search_1 = require("../services/search");
+const auth_1 = require("../middleware/auth");
 const router = (0, express_1.Router)();
 // GET /api/v1/products/search?q=ring
 router.get("/search", async (req, res) => {
@@ -83,9 +84,12 @@ router.get("/", async (req, res) => {
         });
     }
 });
-router.post("/", async (req, res) => {
+router.post("/", auth_1.requireAuth, auth_1.requireSellerProductAccess, async (req, res) => {
     try {
-        const product = await (0, products_1.createProduct)(req.body);
+        const product = await (0, products_1.createProduct)({
+            ...req.body,
+            sellerId: req.user?.role === "Seller" ? req.user.id : req.body.sellerId,
+        });
         res.status(201).json({
             success: true,
             message: "Product created successfully",
@@ -100,9 +104,9 @@ router.post("/", async (req, res) => {
         });
     }
 });
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", auth_1.requireAuth, auth_1.requireSellerProductAccess, async (req, res) => {
     try {
-        const product = await (0, products_1.updateProduct)(req.params.id, req.body);
+        const product = await (0, products_1.updateProduct)(String(req.params.id), req.body);
         res.status(200).json({
             success: true,
             message: "Product update successfully",
@@ -116,9 +120,9 @@ router.patch("/:id", async (req, res) => {
         });
     }
 });
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth_1.requireAuth, auth_1.requireSellerProductAccess, async (req, res) => {
     try {
-        const product = await (0, products_1.deleteProduct)(req.params.id);
+        const product = await (0, products_1.deleteProduct)(String(req.params.id));
         res.status(200).json({
             success: true,
             message: "Product deleted successfully",

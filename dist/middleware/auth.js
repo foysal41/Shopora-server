@@ -4,6 +4,7 @@ exports.getSessionToken = getSessionToken;
 exports.requireAuth = requireAuth;
 exports.requireAdmin = requireAdmin;
 exports.requireUnblockedCustomer = requireUnblockedCustomer;
+exports.requireSellerProductAccess = requireSellerProductAccess;
 exports.optionalAuth = optionalAuth;
 const prisma_1 = require("../lib/prisma");
 function getSessionToken(req) {
@@ -75,6 +76,38 @@ function requireUnblockedCustomer(req, res, next) {
         return;
     }
     next();
+}
+async function requireSellerProductAccess(req, res, next) {
+    if (req.user?.role === "Admin") {
+        next();
+        return;
+    }
+    if (req.user?.role !== "Seller") {
+        res.status(403).json({ success: false, message: "Seller access required" });
+        return;
+    }
+    try {
+        const seller = await prisma_1.prisma.users.findUnique({
+            where: { id: req.user.id },
+            select: { role: true, isBlocked: true, isDeleted: true },
+        });
+        if (!seller || seller.isDeleted || seller.role !== "Seller") {
+            res.status(403).json({ success: false, message: "Seller access required" });
+            return;
+        }
+        if (seller.isBlocked) {
+            res.status(403).json({
+                success: false,
+                message: "Your seller account is blocked. You cannot publish or modify products.",
+            });
+            return;
+        }
+        next();
+    }
+    catch (error) {
+        console.error("SELLER AUTHORIZATION ERROR:", error);
+        res.status(500).json({ success: false, message: "Authorization failed" });
+    }
 }
 async function optionalAuth(req, _res, next) {
     const token = getSessionToken(req);
