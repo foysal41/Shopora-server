@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { bearer } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "../lib/prisma.js";
 
@@ -42,4 +43,9 @@ export const auth = betterAuth({
   ].filter(Boolean),
 
   secret: process.env.BETTER_AUTH_SECRET,
+
+  // Added for cross-domain authentication
+  plugins: [
+    bearer(),
+  ],
 });
