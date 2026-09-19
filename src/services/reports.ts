@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 
 const COMPLETED: ("PAID" | "PROCESSING" | "PACKED" | "SHIPPED" | "DELIVERED")[] = ["PAID", "PROCESSING", "PACKED", "SHIPPED", "DELIVERED"];
 const EXCLUDED: ("CANCELLED" | "REFUNDED")[] = ["CANCELLED", "REFUNDED"];

@@ -5,7 +5,7 @@ import {
     updateAddress,
     deleteAddress,
     type AddressInput,
-} from "../services/address";
+} from "../services/address.js";
 
 const router = Router();
 

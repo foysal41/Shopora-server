@@ -1,11 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const brands_1 = require("../services/brands");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { createBrand, deleteBrand, getBrands, updateBrand, getBrandById } from "../services/brands.js";
+const router = Router();
 router.get("/", async (req, res) => {
     try {
-        const brands = await (0, brands_1.getBrands)();
+        const brands = await getBrands();
         res.status(200).json({
             success: true,
             message: "Brands Fetched Successfully",
@@ -23,7 +21,7 @@ router.get("/", async (req, res) => {
 // GET SINGLE BRAND (with products)
 router.get("/:id", async (req, res) => {
     try {
-        const brand = await (0, brands_1.getBrandById)(req.params.id);
+        const brand = await getBrandById(req.params.id);
         if (!brand) {
             return res.status(404).json({
                 success: false,
@@ -46,7 +44,7 @@ router.get("/:id", async (req, res) => {
 });
 router.post("/", async (req, res) => {
     try {
-        const brand = await (0, brands_1.createBrand)(req.body);
+        const brand = await createBrand(req.body);
         res.status(200).json({
             success: true,
             message: "Brand Created Successfully",
@@ -63,7 +61,7 @@ router.post("/", async (req, res) => {
 });
 router.patch("/:id", async (req, res) => {
     try {
-        const brand = await (0, brands_1.updateBrand)(req.params.id, req.body);
+        const brand = await updateBrand(req.params.id, req.body);
         res.status(200).json({
             success: true,
             message: "Brand updated successfully",
@@ -79,7 +77,7 @@ router.patch("/:id", async (req, res) => {
 });
 router.delete("/:id", async (req, res) => {
     try {
-        const brand = await (0, brands_1.deleteBrand)(req.params.id);
+        const brand = await deleteBrand(req.params.id);
         res.status(200).json({
             success: true,
             message: "Brand deleted successfully",
@@ -93,4 +91,4 @@ router.delete("/:id", async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

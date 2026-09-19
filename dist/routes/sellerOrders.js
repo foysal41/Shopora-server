@@ -1,15 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const sellerOrders_1 = require("../services/sellerOrders");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { getSellerOrders, getSellerOrderById, updateSellerOrderStatus } from "../services/sellerOrders.js";
+const router = Router();
 router.patch("/order/:orderId/status", async (req, res) => {
     try {
         const { orderId } = req.params;
         const { status } = req.body;
         // console.log("STEP STATUS 2 - Order ID:", orderId);
         // console.log("STEP STATUS 2 - Status:", status);
-        const updateOrder = await (0, sellerOrders_1.updateSellerOrderStatus)(orderId, status);
+        const updateOrder = await updateSellerOrderStatus(orderId, status);
         return res.status(200).json({
             success: true,
             message: "Order status updated successfully",
@@ -29,7 +27,7 @@ router.get("/order/:orderId", async (req, res) => {
     try {
         const { orderId } = req.params;
         // console.log("Step 2 - Order ID:" , orderId)
-        const order = await (0, sellerOrders_1.getSellerOrderById)(orderId);
+        const order = await getSellerOrderById(orderId);
         // console.log("Step 2 - Service response: " , order)
         if (!order) {
             return res.status(404).json({
@@ -54,7 +52,7 @@ router.get("/order/:orderId", async (req, res) => {
 router.get("/:sellerId", async (req, res) => {
     try {
         const { sellerId } = req.params;
-        const orders = await (0, sellerOrders_1.getSellerOrders)(sellerId);
+        const orders = await getSellerOrders(sellerId);
         res.status(200).json({
             success: true,
             message: "Seller orders fetched successfully",
@@ -69,4 +67,4 @@ router.get("/:sellerId", async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

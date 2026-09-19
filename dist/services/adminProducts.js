@@ -1,9 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminProductError = void 0;
-exports.getAdminProducts = getAdminProducts;
-const prisma_1 = require("../lib/prisma");
-class AdminProductError extends Error {
+import { prisma } from "../lib/prisma.js";
+export class AdminProductError extends Error {
     message;
     statusCode;
     constructor(message, statusCode) {
@@ -12,7 +8,6 @@ class AdminProductError extends Error {
         this.statusCode = statusCode;
     }
 }
-exports.AdminProductError = AdminProductError;
 const productSelect = {
     id: true,
     name: true,
@@ -65,7 +60,7 @@ const formatProduct = (product) => ({
         }
         : null,
 });
-async function getAdminProducts(query) {
+export async function getAdminProducts(query) {
     const page = query.page === undefined ? 1 : Number(query.page);
     const limit = query.limit === undefined ? 20 : Number(query.limit);
     if (!Number.isInteger(page) || page < 1) {
@@ -90,9 +85,9 @@ async function getAdminProducts(query) {
             }
             : {}),
     };
-    const [total, products] = await prisma_1.prisma.$transaction([
-        prisma_1.prisma.product.count({ where }),
-        prisma_1.prisma.product.findMany({
+    const [total, products] = await prisma.$transaction([
+        prisma.product.count({ where }),
+        prisma.product.findMany({
             where,
             select: productSelect,
             orderBy: { createdAt: "desc" },

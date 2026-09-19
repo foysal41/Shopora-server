@@ -1,13 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.chatWithProducts = void 0;
-const search_1 = require("./search");
+import { searchProducts } from "./search.js";
 /* =========================================================
    PRODUCT SEARCH
 ========================================================= */
 const findProducts = async (message) => {
     try {
-        const products = await (0, search_1.searchProducts)(message);
+        const products = await searchProducts(message);
         return products;
     }
     catch (error) {
@@ -51,7 +48,7 @@ Description: ${product.description || "N/A"}
 /* =========================================================
    CHAT WITH PRODUCTS
 ========================================================= */
-const chatWithProducts = async (userMessage) => {
+export const chatWithProducts = async (userMessage) => {
     const message = userMessage.trim();
     if (!message) {
         throw new Error("Message is required.");
@@ -86,4 +83,3 @@ const chatWithProducts = async (userMessage) => {
         products,
     };
 };
-exports.chatWithProducts = chatWithProducts;

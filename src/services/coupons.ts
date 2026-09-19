@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 
 export const DISCOUNT_TYPES = ["PERCENTAGE", "FIXED_CART", "FIXED_PRODUCT"] as const;
 export type DiscountType = (typeof DISCOUNT_TYPES)[number];

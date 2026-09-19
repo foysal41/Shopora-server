@@ -1,17 +1,15 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const stripe_1 = require("../services/stripe");
-const stripe_2 = require("../lib/stripe");
-const prisma_1 = require("../lib/prisma");
-const auth_1 = require("../middleware/auth");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { createCheckoutSession } from "../services/stripe.js";
+import { getStripe } from "../lib/stripe.js";
+import { prisma } from "../lib/prisma.js";
+import { requireAuth, requireUnblockedCustomer, } from "../middleware/auth.js";
+const router = Router();
 /**
  * ============================================
  * CREATE STRIPE CHECKOUT SESSION
  * ============================================
  */
-router.post("/create-checkout-session", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req, res) => {
+router.post("/create-checkout-session", requireAuth, requireUnblockedCustomer, async (req, res) => {
     try {
         const { items, shippingName, shippingPhone, shippingAddress, shippingCity, shippingPostalCode, shippingCountry, shippingFee, discount, } = req.body;
         /**
@@ -76,7 +74,7 @@ router.post("/create-checkout-session", auth_1.requireAuth, auth_1.requireUnbloc
         /**
          * Create Stripe Checkout Session
          */
-        const session = await (0, stripe_1.createCheckoutSession)({
+        const session = await createCheckoutSession({
             items,
             customerId: authenticatedCustomerId,
             shippingName,
@@ -140,7 +138,7 @@ router.get("/verify-session", async (req, res) => {
          * This prevents Stripe configuration
          * from crashing the whole server at startup.
          */
-        const stripe = (0, stripe_2.getStripe)();
+        const stripe = getStripe();
         /**
          * Retrieve Stripe Checkout Session
          */
@@ -173,7 +171,7 @@ router.get("/verify-session", async (req, res) => {
         /**
          * Check customer
          */
-        const customer = await prisma_1.prisma.users.findUnique({
+        const customer = await prisma.users.findUnique({
             where: {
                 id: metadata.customerId,
             },
@@ -198,7 +196,7 @@ router.get("/verify-session", async (req, res) => {
         /**
          * Check product
          */
-        const product = await prisma_1.prisma.product.findUnique({
+        const product = await prisma.product.findUnique({
             where: {
                 id: metadata.productId,
             },
@@ -246,7 +244,7 @@ router.get("/verify-session", async (req, res) => {
         /**
          * Create order
          */
-        const order = await prisma_1.prisma.order.create({
+        const order = await prisma.order.create({
             data: {
                 orderNumber,
                 customerId: metadata.customerId,
@@ -310,4 +308,4 @@ router.get("/verify-session", async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

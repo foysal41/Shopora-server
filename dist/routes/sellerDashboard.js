@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const sellerDashboard_1 = require("../services/sellerDashboard");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { getSellerDashboardStats } from "../services/sellerDashboard.js";
+const router = Router();
 // GET /api/v1/seller/dashboard/:sellerId
 router.get("/:sellerId", async (req, res) => {
     try {
@@ -21,7 +19,7 @@ router.get("/:sellerId", async (req, res) => {
             });
         }
         // Get seller dashboard stats + analytics
-        const stats = await (0, sellerDashboard_1.getSellerDashboardStats)(sellerId, startDate, endDate);
+        const stats = await getSellerDashboardStats(sellerId, startDate, endDate);
         return res.status(200).json({
             success: true,
             message: "Seller dashboard stats fetched successfully",
@@ -37,4 +35,4 @@ router.get("/:sellerId", async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

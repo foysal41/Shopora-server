@@ -1,13 +1,11 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const orders_1 = require("../services/orders");
-const auth_1 = require("../middleware/auth");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { createOrder, getCustomerOrders } from "../services/orders.js";
+import { requireAuth, requireUnblockedCustomer } from "../middleware/auth.js";
+const router = Router();
 // ================= CREATE ORDER =================
-router.post("/", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req, res) => {
+router.post("/", requireAuth, requireUnblockedCustomer, async (req, res) => {
     try {
-        const order = await (0, orders_1.createOrder)({ ...req.body, customerId: req.user.id });
+        const order = await createOrder({ ...req.body, customerId: req.user.id });
         res.status(201).json({
             success: true,
             message: "Order created successfully",
@@ -23,7 +21,7 @@ router.post("/", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req
     }
 });
 // GET CUSTOMER ORDERS
-router.get("/", auth_1.requireAuth, async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
     try {
         const { customerId } = req.query;
         if (!customerId || typeof customerId !== "string") {
@@ -35,7 +33,7 @@ router.get("/", auth_1.requireAuth, async (req, res) => {
         if (req.user.role !== "Admin" && req.user.id !== customerId) {
             return res.status(403).json({ success: false, message: "You can only access your own orders" });
         }
-        const orders = await (0, orders_1.getCustomerOrders)(customerId);
+        const orders = await getCustomerOrders(customerId);
         res.status(200).json({
             success: true,
             message: "Orders fetched successfully",
@@ -50,4 +48,4 @@ router.get("/", auth_1.requireAuth, async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

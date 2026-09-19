@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCustomerReviews = exports.deleteReview = exports.saveReview = exports.getProductReviews = exports.ReviewError = void 0;
-const prisma_1 = require("../lib/prisma");
-class ReviewError extends Error {
+import { prisma } from "../lib/prisma.js";
+export class ReviewError extends Error {
     message;
     statusCode;
     constructor(message, statusCode) {
@@ -11,7 +8,6 @@ class ReviewError extends Error {
         this.statusCode = statusCode;
     }
 }
-exports.ReviewError = ReviewError;
 const customerSelect = { name: true, image: true };
 const formatReview = (review) => ({
     id: review.id,
@@ -30,19 +26,18 @@ const formatReview = (review) => ({
     createdAt: review.createdAt,
     updatedAt: review.updatedAt,
 });
-const getProductReviews = async (productId) => {
-    const product = await prisma_1.prisma.product.findUnique({ where: { id: productId }, select: { id: true } });
+export const getProductReviews = async (productId) => {
+    const product = await prisma.product.findUnique({ where: { id: productId }, select: { id: true } });
     if (!product)
         throw new ReviewError("Product not found", 404);
-    const reviews = await prisma_1.prisma.review.findMany({
+    const reviews = await prisma.review.findMany({
         where: { productId },
         include: { customer: { select: customerSelect } },
         orderBy: { createdAt: "desc" },
     });
     return reviews.map(formatReview);
 };
-exports.getProductReviews = getProductReviews;
-const saveReview = async (data, user) => {
+export const saveReview = async (data, user) => {
     if (user.role !== "Customer")
         throw new ReviewError("Only customers can create reviews", 403);
     if (!data.productId)
@@ -53,7 +48,7 @@ const saveReview = async (data, user) => {
     if (typeof data.comment !== "string" || data.comment.trim().length < 5 || data.comment.trim().length > 1000) {
         throw new ReviewError("comment must be between 5 and 1000 characters", 400);
     }
-    return prisma_1.prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx) => {
         const product = await tx.product.findUnique({ where: { id: data.productId }, select: { id: true } });
         if (!product)
             throw new ReviewError("Product not found", 404);
@@ -104,9 +99,8 @@ const saveReview = async (data, user) => {
         return formatReview(review);
     });
 };
-exports.saveReview = saveReview;
-const deleteReview = async (reviewId, user) => {
-    return prisma_1.prisma.$transaction(async (tx) => {
+export const deleteReview = async (reviewId, user) => {
+    return prisma.$transaction(async (tx) => {
         const review = await tx.review.findUnique({
             where: { id: reviewId },
             select: { id: true, productId: true, customerId: true },
@@ -128,12 +122,11 @@ const deleteReview = async (reviewId, user) => {
         });
     });
 };
-exports.deleteReview = deleteReview;
-const getCustomerReviews = async (customerId, user) => {
+export const getCustomerReviews = async (customerId, user) => {
     if (user.role !== "Admin" && user.id !== customerId) {
         throw new ReviewError("You can only access your own reviews", 403);
     }
-    const reviews = await prisma_1.prisma.review.findMany({
+    const reviews = await prisma.review.findMany({
         where: { customerId },
         include: {
             customer: { select: customerSelect },
@@ -143,4 +136,3 @@ const getCustomerReviews = async (customerId, user) => {
     });
     return reviews.map(formatReview);
 };
-exports.getCustomerReviews = getCustomerReviews;

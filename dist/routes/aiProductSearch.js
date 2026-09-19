@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const search_1 = require("../services/search");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { searchProducts } from "../services/search.js";
+const router = Router();
 router.get("/search", async (req, res) => {
     try {
         const query = typeof req.query.query === "string"
@@ -14,7 +12,7 @@ router.get("/search", async (req, res) => {
                 message: "Search query is required.",
             });
         }
-        const products = await (0, search_1.searchProducts)(query);
+        const products = await searchProducts(query);
         return res.status(200).json({
             success: true,
             message: "Products searched successfully.",
@@ -29,4 +27,4 @@ router.get("/search", async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

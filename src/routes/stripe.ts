@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { createCheckoutSession } from "../services/stripe";
-import { getStripe } from "../lib/stripe";
-import { prisma } from "../lib/prisma";
+import { createCheckoutSession } from "../services/stripe.js";
+import { getStripe } from "../lib/stripe.js";
+import { prisma } from "../lib/prisma.js";
 import {
   requireAuth,
   requireUnblockedCustomer,
-} from "../middleware/auth";
+} from "../middleware/auth.js";
 
 const router = Router();
 

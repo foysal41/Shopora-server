@@ -1,14 +1,11 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createCheckoutSession = void 0;
-const stripe_1 = require("../lib/stripe");
-const createCheckoutSession = async (data) => {
+import { getStripe } from "../lib/stripe.js";
+export const createCheckoutSession = async (data) => {
     /**
      * Initialize Stripe only when this function is called.
      * This prevents the entire Express/Vercel function
      * from crashing during startup if Stripe is not configured.
      */
-    const stripe = (0, stripe_1.getStripe)();
+    const stripe = getStripe();
     /**
      * Validate checkout items
      */
@@ -109,4 +106,3 @@ const createCheckoutSession = async (data) => {
     });
     return session;
 };
-exports.createCheckoutSession = createCheckoutSession;

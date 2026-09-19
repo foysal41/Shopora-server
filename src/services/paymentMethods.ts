@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 
 export const MAX_PAYMENT_METHODS_PER_USER = 3;
 

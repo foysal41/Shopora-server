@@ -1,6 +1,6 @@
 import { Router, type Response } from "express";
-import { requireAuth } from "../middleware/auth";
-import { NotificationError, deleteNotification, getNotificationsByUser, getUnreadCount, markAllAsRead, markAsRead } from "../services/notifications";
+import { requireAuth } from "../middleware/auth.js";
+import { NotificationError, deleteNotification, getNotificationsByUser, getUnreadCount, markAllAsRead, markAsRead } from "../services/notifications.js";
 
 const router = Router();
 router.use(requireAuth);

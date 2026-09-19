@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 
 export const addToWishlist = async (userId: string, productId: string) => {
     // upsert = adding an already-wishlisted product is a harmless no-op

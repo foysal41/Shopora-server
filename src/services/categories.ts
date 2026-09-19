@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 
 export const CATEGORY_STATUSES = ["ACTIVE", "INACTIVE"] as const;
 export type CategoryStatus = (typeof CATEGORY_STATUSES)[number];

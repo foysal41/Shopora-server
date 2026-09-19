@@ -1,9 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const auth_1 = require("../middleware/auth");
-const paymentMethods_1 = require("../services/paymentMethods");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { requireAuth } from "../middleware/auth.js";
+import { createPaymentMethod, deletePaymentMethod, listPaymentMethods, updatePaymentMethod, } from "../services/paymentMethods.js";
+const router = Router();
 const supportedBrands = new Set(["visa", "mastercard", "amex", "discover"]);
 function nonEmptyString(value) {
     return typeof value === "string" && value.trim().length > 0;
@@ -53,10 +51,10 @@ function validateCreate(body) {
         },
     };
 }
-router.use(auth_1.requireAuth);
+router.use(requireAuth);
 router.get("/", async (req, res) => {
     try {
-        const methods = await (0, paymentMethods_1.listPaymentMethods)(req.user.id);
+        const methods = await listPaymentMethods(req.user.id);
         res.json({ success: true, data: methods });
     }
     catch (error) {
@@ -71,7 +69,7 @@ router.post("/", async (req, res) => {
         return;
     }
     try {
-        const method = await (0, paymentMethods_1.createPaymentMethod)(req.user.id, result.input);
+        const method = await createPaymentMethod(req.user.id, result.input);
         res.status(201).json({ success: true, data: method });
     }
     catch (error) {
@@ -83,7 +81,7 @@ router.post("/", async (req, res) => {
 });
 router.patch("/:id/default", async (req, res) => {
     try {
-        const method = await (0, paymentMethods_1.updatePaymentMethod)(req.user.id, req.params.id, { isDefault: true });
+        const method = await updatePaymentMethod(req.user.id, req.params.id, { isDefault: true });
         if (!method) {
             res.status(404).json({ success: false, message: "Payment method not found" });
             return;
@@ -143,7 +141,7 @@ router.patch("/:id", async (req, res) => {
     if ("isDefault" in body)
         allowed.isDefault = body.isDefault;
     try {
-        const method = await (0, paymentMethods_1.updatePaymentMethod)(req.user.id, req.params.id, allowed);
+        const method = await updatePaymentMethod(req.user.id, req.params.id, allowed);
         if (!method) {
             res.status(404).json({ success: false, message: "Payment method not found" });
             return;
@@ -157,7 +155,7 @@ router.patch("/:id", async (req, res) => {
 });
 router.delete("/:id", async (req, res) => {
     try {
-        const method = await (0, paymentMethods_1.deletePaymentMethod)(req.user.id, req.params.id);
+        const method = await deletePaymentMethod(req.user.id, req.params.id);
         if (!method) {
             res.status(404).json({ success: false, message: "Payment method not found" });
             return;
@@ -169,4 +167,4 @@ router.delete("/:id", async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to delete payment method" });
     }
 });
-exports.default = router;
+export default router;

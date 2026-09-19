@@ -1,5 +1,5 @@
-import { prisma } from "../lib/prisma";
-import type { users } from "../generated/prisma/client";
+import { prisma } from "../lib/prisma.js";
+import type { users } from "../generated/prisma/client.js";
 
 export class ReviewError extends Error {
   constructor(public message: string, public statusCode: number) {

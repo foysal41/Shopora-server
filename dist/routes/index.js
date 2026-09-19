@@ -1,3 +1,3 @@
-"use strict";
 // import { Router } from "express";
+export {};
 // const router = Router()

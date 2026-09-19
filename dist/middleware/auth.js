@@ -1,14 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSessionToken = getSessionToken;
-exports.requireAuth = requireAuth;
-exports.requireAdmin = requireAdmin;
-exports.requireUnblockedCustomer = requireUnblockedCustomer;
-exports.requireSellerProductAccess = requireSellerProductAccess;
-exports.optionalAuth = optionalAuth;
-const node_1 = require("better-auth/node");
-const auth_1 = require("../lib/auth");
-const prisma_1 = require("../lib/prisma");
+import { fromNodeHeaders } from "better-auth/node";
+import { auth } from "../lib/auth.js";
+import { prisma } from "../lib/prisma.js";
 /**
  * Extract session token.
  *
@@ -18,7 +10,7 @@ const prisma_1 = require("../lib/prisma");
  * requireAuth() does NOT use this for Better Auth cookies.
  * Better Auth itself validates the signed session cookie.
  */
-function getSessionToken(req) {
+export function getSessionToken(req) {
     // Authorization: Bearer <token>
     const authorization = req.header("authorization");
     if (authorization?.startsWith("Bearer ")) {
@@ -58,17 +50,17 @@ function getSessionToken(req) {
  *
  * Better Auth validates the signed cookie here.
  */
-async function requireAuth(req, res, next) {
+export async function requireAuth(req, res, next) {
     try {
-        const session = await auth_1.auth.api.getSession({
-            headers: (0, node_1.fromNodeHeaders)(req.headers),
+        const session = await auth.api.getSession({
+            headers: fromNodeHeaders(req.headers),
         });
-        console.log("========== BETTER AUTH DEBUG ==========");
-        console.log("SESSION FOUND:", !!session);
-        console.log("USER ID:", session?.user?.id);
-        console.log("USER EMAIL:", session?.user?.email);
-        console.log("USER ROLE:", session?.user?.role);
-        console.log("========================================");
+        // console.log("========== BETTER AUTH DEBUG ==========");
+        // console.log("SESSION FOUND:", !!session);
+        // console.log("USER ID:", session?.user?.id);
+        // console.log("USER EMAIL:", session?.user?.email);
+        // console.log("USER ROLE:", session?.user?.role);
+        // console.log("========================================");
         if (!session) {
             res.status(401).json({
                 success: false,
@@ -83,7 +75,7 @@ async function requireAuth(req, res, next) {
          * We then fetch our complete users record because
          * Shopora also has isBlocked, isDeleted, role, etc.
          */
-        const user = await prisma_1.prisma.users.findUnique({
+        const user = await prisma.users.findUnique({
             where: {
                 id: session.user.id,
             },
@@ -116,7 +108,7 @@ async function requireAuth(req, res, next) {
 /**
  * Admin authorization
  */
-function requireAdmin(req, res, next) {
+export function requireAdmin(req, res, next) {
     if (!req.user) {
         res.status(401).json({
             success: false,
@@ -136,7 +128,7 @@ function requireAdmin(req, res, next) {
 /**
  * Customer authorization
  */
-function requireUnblockedCustomer(req, res, next) {
+export function requireUnblockedCustomer(req, res, next) {
     if (!req.user) {
         res.status(401).json({
             success: false,
@@ -163,7 +155,7 @@ function requireUnblockedCustomer(req, res, next) {
 /**
  * Seller product authorization
  */
-async function requireSellerProductAccess(req, res, next) {
+export async function requireSellerProductAccess(req, res, next) {
     if (!req.user) {
         res.status(401).json({
             success: false,
@@ -185,7 +177,7 @@ async function requireSellerProductAccess(req, res, next) {
         return;
     }
     try {
-        const seller = await prisma_1.prisma.users.findUnique({
+        const seller = await prisma.users.findUnique({
             where: {
                 id: req.user.id,
             },
@@ -239,13 +231,13 @@ async function requireSellerProductAccess(req, res, next) {
  *
  * Used for routes where login is optional.
  */
-async function optionalAuth(req, _res, next) {
+export async function optionalAuth(req, _res, next) {
     try {
-        const session = await auth_1.auth.api.getSession({
-            headers: (0, node_1.fromNodeHeaders)(req.headers),
+        const session = await auth.api.getSession({
+            headers: fromNodeHeaders(req.headers),
         });
         if (session) {
-            const user = await prisma_1.prisma.users.findUnique({
+            const user = await prisma.users.findUnique({
                 where: {
                     id: session.user.id,
                 },

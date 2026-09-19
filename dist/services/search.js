@@ -1,13 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchProducts = searchProducts;
-const prisma_js_1 = require("../lib/prisma.js");
-async function searchProducts(query) {
+import { prisma } from "../lib/prisma.js";
+export async function searchProducts(query) {
     const search = query.trim();
     if (!search) {
         return [];
     }
-    const products = await prisma_js_1.prisma.product.findMany({
+    const products = await prisma.product.findMany({
         where: {
             status: "published",
             OR: [

@@ -4,8 +4,8 @@ import {
     removeFromWishlist,
     isProductWishlisted,
     getWishlistByUser,
-} from "../services/wishlist";
-import { requireAuth, requireUnblockedCustomer } from "../middleware/auth";
+} from "../services/wishlist.js";
+import { requireAuth, requireUnblockedCustomer } from "../middleware/auth.js";
 
 const router = Router();
 

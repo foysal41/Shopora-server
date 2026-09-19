@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAuth, requireUnblockedCustomer } from "../middleware/auth";
-import { deleteReview, getCustomerReviews, getProductReviews, ReviewError, saveReview } from "../services/reviews";
+import { requireAuth, requireUnblockedCustomer } from "../middleware/auth.js";
+import { deleteReview, getCustomerReviews, getProductReviews, ReviewError, saveReview } from "../services/reviews.js";
 
 const router = Router();
 

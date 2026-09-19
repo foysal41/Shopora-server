@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { getSessionToken, requireAuth } from "../middleware/auth";
+import { getSessionToken, requireAuth } from "../middleware/auth.js";
 import {
   changePassword,
   updateProfile,
   validateName,
-} from "../services/account";
+} from "../services/account.js";
 
 const router = Router();
 const MIN_PASSWORD_LENGTH = 8;

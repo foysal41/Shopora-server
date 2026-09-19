@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth } from "../middleware/auth.js";
 import {
   createPaymentMethod,
   deletePaymentMethod,
@@ -7,7 +7,7 @@ import {
   updatePaymentMethod,
   type PaymentMethodCreateInput,
   type PaymentMethodUpdateInput,
-} from "../services/paymentMethods";
+} from "../services/paymentMethods.js";
 
 const router = Router();
 const supportedBrands = new Set(["visa", "mastercard", "amex", "discover"]);

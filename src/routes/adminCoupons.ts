@@ -1,6 +1,6 @@
 import { Router, type Response } from "express";
-import { requireAdmin, requireAuth } from "../middleware/auth";
-import { CouponError, createCoupon, deleteCoupon, getCoupons, updateCoupon } from "../services/coupons";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
+import { CouponError, createCoupon, deleteCoupon, getCoupons, updateCoupon } from "../services/coupons.js";
 
 const router = Router();
 router.use(requireAuth, requireAdmin);

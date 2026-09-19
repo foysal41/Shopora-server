@@ -1,4 +1,4 @@
-import { searchProducts } from "./search";
+import { searchProducts } from "./search.js";
 
 /* =========================================================
    TYPES

@@ -1,11 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const auth_1 = require("../middleware/auth");
-const categories_1 = require("../services/categories");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { optionalAuth, requireAdmin, requireAuth } from "../middleware/auth.js";
+import { CategoryError, createCategory, deleteCategory, getCategories, getCategoryById, updateCategory, } from "../services/categories.js";
+const router = Router();
 function categoryErrorStatus(error) {
-    if (!(error instanceof categories_1.CategoryError))
+    if (!(error instanceof CategoryError))
         return 500;
     if (error.code === "not-found")
         return 404;
@@ -17,14 +15,14 @@ function sendCategoryError(res, error, fallback) {
     const status = categoryErrorStatus(error);
     res.status(status).json({
         success: false,
-        message: error instanceof categories_1.CategoryError ? error.message : fallback,
+        message: error instanceof CategoryError ? error.message : fallback,
         errors: [],
     });
 }
-router.get("/", auth_1.optionalAuth, async (req, res) => {
+router.get("/", optionalAuth, async (req, res) => {
     try {
         const userIsAdmin = req.user?.role === "Admin";
-        const categories = await (0, categories_1.getCategories)({
+        const categories = await getCategories({
             search: typeof req.query.search === "string" ? req.query.search : undefined,
             status: userIsAdmin && typeof req.query.status === "string" ? req.query.status : "ACTIVE",
             includeInactive: userIsAdmin,
@@ -35,36 +33,36 @@ router.get("/", auth_1.optionalAuth, async (req, res) => {
         sendCategoryError(res, error, "Failed to fetch categories");
     }
 });
-router.post("/", auth_1.requireAuth, auth_1.requireAdmin, async (req, res) => {
+router.post("/", requireAuth, requireAdmin, async (req, res) => {
     try {
-        const category = await (0, categories_1.createCategory)(req.body);
+        const category = await createCategory(req.body);
         res.status(201).json({ success: true, message: "Category created successfully", data: category });
     }
     catch (error) {
         sendCategoryError(res, error, "Failed to create category");
     }
 });
-router.patch("/:id", auth_1.requireAuth, auth_1.requireAdmin, async (req, res) => {
+router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
     try {
-        const category = await (0, categories_1.updateCategory)(String(req.params.id), req.body);
+        const category = await updateCategory(String(req.params.id), req.body);
         res.status(200).json({ success: true, message: "Category updated successfully", data: category });
     }
     catch (error) {
         sendCategoryError(res, error, "Failed to update category");
     }
 });
-router.delete("/:id", auth_1.requireAuth, auth_1.requireAdmin, async (req, res) => {
+router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
     try {
-        await (0, categories_1.deleteCategory)(String(req.params.id));
+        await deleteCategory(String(req.params.id));
         res.status(200).json({ success: true, message: "Category deleted successfully", data: null });
     }
     catch (error) {
         sendCategoryError(res, error, "Failed to delete category");
     }
 });
-router.get("/:id", auth_1.optionalAuth, async (req, res) => {
+router.get("/:id", optionalAuth, async (req, res) => {
     try {
-        const category = await (0, categories_1.getCategoryById)(String(req.params.id), req.user?.role === "Admin");
+        const category = await getCategoryById(String(req.params.id), req.user?.role === "Admin");
         if (!category) {
             res.status(404).json({ success: false, message: "Category not found", errors: [] });
             return;
@@ -75,4 +73,4 @@ router.get("/:id", auth_1.optionalAuth, async (req, res) => {
         sendCategoryError(res, error, "Failed to fetch category");
     }
 });
-exports.default = router;
+export default router;

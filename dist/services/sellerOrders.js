@@ -1,12 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateSellerOrderStatus = exports.getSellerOrderById = exports.getSellerOrders = void 0;
-const prisma_1 = require("../lib/prisma");
-const getSellerOrders = async (sellerId) => {
+import { prisma } from "../lib/prisma.js";
+export const getSellerOrders = async (sellerId) => {
     if (!sellerId) {
         throw new Error("Seller ID is required.");
     }
-    const orderItems = await prisma_1.prisma.orderItems.findMany({
+    const orderItems = await prisma.orderItems.findMany({
         where: {
             sellerId,
         },
@@ -63,10 +60,9 @@ const getSellerOrders = async (sellerId) => {
     }
     return Array.from(groupedOrders.values());
 };
-exports.getSellerOrders = getSellerOrders;
-const getSellerOrderById = async (orderId) => {
+export const getSellerOrderById = async (orderId) => {
     // console.log("STEP 1 - Order ID:", orderId);
-    const order = await prisma_1.prisma.order.findUnique({
+    const order = await prisma.order.findUnique({
         where: {
             id: orderId,
         },
@@ -86,11 +82,10 @@ const getSellerOrderById = async (orderId) => {
     // console.log("STEP 1 - Order from database:", order);
     return order;
 };
-exports.getSellerOrderById = getSellerOrderById;
-const updateSellerOrderStatus = async (orderId, status) => {
+export const updateSellerOrderStatus = async (orderId, status) => {
     // console.log("Step status 1 - Order ID: " , orderId)
     //  console.log("STEP STATUS 1 - New Status:", status);
-    const updateOrder = await prisma_1.prisma.order.update({
+    const updateOrder = await prisma.order.update({
         where: {
             id: orderId,
         },
@@ -101,4 +96,3 @@ const updateSellerOrderStatus = async (orderId, status) => {
     //  console.log("Step Status 1 - Updated Order: " , updateOrder);
     return updateOrder;
 };
-exports.updateSellerOrderStatus = updateSellerOrderStatus;

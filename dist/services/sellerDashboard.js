@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSellerDashboardStats = void 0;
-const prisma_1 = require("../lib/prisma");
+import { prisma } from "../lib/prisma.js";
 const getCurrentWeekRange = () => {
     const now = new Date();
     const start = new Date(now);
@@ -37,7 +34,7 @@ const parseDateRange = (startDate, endDate) => {
         end,
     };
 };
-const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
+export const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     if (!sellerId) {
         throw new Error("Seller ID is required");
     }
@@ -56,7 +53,7 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     // ============================================
     // TOTAL PRODUCTS
     // ============================================
-    const totalProducts = await prisma_1.prisma.product.count({
+    const totalProducts = await prisma.product.count({
         where: {
             sellerId,
         },
@@ -64,7 +61,7 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     // ============================================
     // CURRENT PERIOD SALES
     // ============================================
-    const currentSales = await prisma_1.prisma.orderItems.aggregate({
+    const currentSales = await prisma.orderItems.aggregate({
         where: {
             sellerId,
             createdAt: {
@@ -90,7 +87,7 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     // ============================================
     // PREVIOUS PERIOD SALES
     // ============================================
-    const previousSales = await prisma_1.prisma.orderItems.aggregate({
+    const previousSales = await prisma.orderItems.aggregate({
         where: {
             sellerId,
             createdAt: {
@@ -116,7 +113,7 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     // ============================================
     // CURRENT PERIOD ORDERS
     // ============================================
-    const currentOrders = await prisma_1.prisma.orderItems.findMany({
+    const currentOrders = await prisma.orderItems.findMany({
         where: {
             sellerId,
             createdAt: {
@@ -142,7 +139,7 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     // ============================================
     // PREVIOUS PERIOD ORDERS
     // ============================================
-    const previousOrders = await prisma_1.prisma.orderItems.findMany({
+    const previousOrders = await prisma.orderItems.findMany({
         where: {
             sellerId,
             createdAt: {
@@ -190,7 +187,7 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     // =========================================================
     // TOP SELLING PRODUCTS
     // =========================================================
-    const topSellingItems = await prisma_1.prisma.orderItems.groupBy({
+    const topSellingItems = await prisma.orderItems.groupBy({
         by: [
             "productId",
             "productName",
@@ -227,7 +224,7 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     const topSellingProductIds = topSellingItems.map((item) => item.productId);
     // Product details
     const topSellingProductDetails = topSellingProductIds.length
-        ? await prisma_1.prisma.product.findMany({
+        ? await prisma.product.findMany({
             where: {
                 id: {
                     in: topSellingProductIds,
@@ -255,7 +252,7 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     // =========================================================
     // ORDERS OVERVIEW
     // =========================================================
-    const ordersForOverview = await prisma_1.prisma.orderItems.findMany({
+    const ordersForOverview = await prisma.orderItems.findMany({
         where: {
             sellerId,
             createdAt: {
@@ -341,7 +338,7 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
     // =========================================================
     // RECENT ORDERS
     // =========================================================
-    const recentOrderItems = await prisma_1.prisma.orderItems.findMany({
+    const recentOrderItems = await prisma.orderItems.findMany({
         where: {
             sellerId,
             createdAt: {
@@ -407,4 +404,3 @@ const getSellerDashboardStats = async (sellerId, startDate, endDate) => {
         },
     };
 };
-exports.getSellerDashboardStats = getSellerDashboardStats;
