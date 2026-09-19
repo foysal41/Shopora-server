@@ -1,23 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAddress = exports.updateAddress = exports.createAddress = exports.getAddressesByUser = void 0;
-const prisma_1 = require("../lib/prisma");
+import { prisma } from "../lib/prisma.js";
 /* =========================================================
    READ
 ========================================================= */
 // All of a user's addresses. Default address first, then newest.
-const getAddressesByUser = async (userId) => {
-    return await prisma_1.prisma.address.findMany({
+export const getAddressesByUser = async (userId) => {
+    return await prisma.address.findMany({
         where: { userId },
         orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
     });
 };
-exports.getAddressesByUser = getAddressesByUser;
 /* =========================================================
    CREATE
 ========================================================= */
-const createAddress = async (userId, data) => {
-    return await prisma_1.prisma.$transaction(async (tx) => {
+export const createAddress = async (userId, data) => {
+    return await prisma.$transaction(async (tx) => {
         // Only one address can be the default; clear the others first.
         if (data.isDefault) {
             await tx.address.updateMany({
@@ -40,14 +36,13 @@ const createAddress = async (userId, data) => {
         });
     });
 };
-exports.createAddress = createAddress;
 /* =========================================================
    UPDATE
    Scoped by userId so a user can only edit their OWN address.
    Returns null when the address doesn't exist / isn't theirs.
 ========================================================= */
-const updateAddress = async (userId, id, data) => {
-    return await prisma_1.prisma.$transaction(async (tx) => {
+export const updateAddress = async (userId, id, data) => {
+    return await prisma.$transaction(async (tx) => {
         const existing = await tx.address.findFirst({ where: { id, userId } });
         if (!existing)
             return null;
@@ -72,15 +67,13 @@ const updateAddress = async (userId, id, data) => {
         });
     });
 };
-exports.updateAddress = updateAddress;
 /* =========================================================
    DELETE
    Scoped by userId. Returns true only if a row was removed.
 ========================================================= */
-const deleteAddress = async (userId, id) => {
-    const result = await prisma_1.prisma.address.deleteMany({
+export const deleteAddress = async (userId, id) => {
+    const result = await prisma.address.deleteMany({
         where: { id, userId },
     });
     return result.count > 0;
 };
-exports.deleteAddress = deleteAddress;

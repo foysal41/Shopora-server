@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getWishlistByUser = exports.isProductWishlisted = exports.removeFromWishlist = exports.addToWishlist = void 0;
-const prisma_1 = require("../lib/prisma");
-const addToWishlist = async (userId, productId) => {
+import { prisma } from "../lib/prisma.js";
+export const addToWishlist = async (userId, productId) => {
     // upsert = adding an already-wishlisted product is a harmless no-op
     // instead of a duplicate-key error.
-    return await prisma_1.prisma.wishlist.upsert({
+    return await prisma.wishlist.upsert({
         where: {
             userId_productId: { userId, productId },
         },
@@ -13,25 +10,22 @@ const addToWishlist = async (userId, productId) => {
         create: { userId, productId },
     });
 };
-exports.addToWishlist = addToWishlist;
-const removeFromWishlist = async (userId, productId) => {
-    return await prisma_1.prisma.wishlist.deleteMany({
+export const removeFromWishlist = async (userId, productId) => {
+    return await prisma.wishlist.deleteMany({
         where: { userId, productId },
     });
 };
-exports.removeFromWishlist = removeFromWishlist;
-const isProductWishlisted = async (userId, productId) => {
-    const item = await prisma_1.prisma.wishlist.findUnique({
+export const isProductWishlisted = async (userId, productId) => {
+    const item = await prisma.wishlist.findUnique({
         where: {
             userId_productId: { userId, productId },
         },
     });
     return Boolean(item);
 };
-exports.isProductWishlisted = isProductWishlisted;
 // GET /api/v1/wishlist?userId=...
-const getWishlistByUser = async (userId) => {
-    const items = await prisma_1.prisma.wishlist.findMany({
+export const getWishlistByUser = async (userId) => {
+    const items = await prisma.wishlist.findMany({
         where: { userId },
         include: { product: true },
         orderBy: { createdAt: "desc" },
@@ -59,4 +53,3 @@ const getWishlistByUser = async (userId) => {
         };
     });
 };
-exports.getWishlistByUser = getWishlistByUser;

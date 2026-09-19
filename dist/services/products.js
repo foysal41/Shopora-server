@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteProduct = exports.updateProduct = exports.getProductById = exports.getNewArrivals = exports.getProducts = exports.createProduct = void 0;
-const prisma_1 = require("../lib/prisma");
-const notifications_1 = require("./notifications");
-const createProduct = async (data) => {
+import { prisma } from "../lib/prisma.js";
+import { createNotification } from "./notifications.js";
+export const createProduct = async (data) => {
     // console.log(data)
-    const product = await prisma_1.prisma.product.create({
+    const product = await prisma.product.create({
         data: {
             name: data.name,
             sku: data.sku,
@@ -35,11 +32,11 @@ const createProduct = async (data) => {
     });
     // Notify all customers about the new product (only when published).
     if (product.status === "published") {
-        const customers = await prisma_1.prisma.users.findMany({
+        const customers = await prisma.users.findMany({
             where: { role: "Customer" },
             select: { id: true },
         });
-        await Promise.all(customers.map((customer) => (0, notifications_1.createNotification)({
+        await Promise.all(customers.map((customer) => createNotification({
             userId: customer.id,
             type: "new_product",
             title: "New Product Arrived",
@@ -49,17 +46,15 @@ const createProduct = async (data) => {
     }
     return product;
 };
-exports.createProduct = createProduct;
-const getProducts = async () => {
-    return await prisma_1.prisma.product.findMany({
+export const getProducts = async () => {
+    return await prisma.product.findMany({
         orderBy: {
             createdAt: "desc"
         }
     });
 };
-exports.getProducts = getProducts;
-const getNewArrivals = async () => {
-    return await prisma_1.prisma.product.findMany({
+export const getNewArrivals = async () => {
+    return await prisma.product.findMany({
         where: {
             status: "published",
         },
@@ -69,24 +64,20 @@ const getNewArrivals = async () => {
         take: 12,
     });
 };
-exports.getNewArrivals = getNewArrivals;
-const getProductById = async (id) => {
-    return await prisma_1.prisma.product.findUnique({
+export const getProductById = async (id) => {
+    return await prisma.product.findUnique({
         where: { id, },
     });
 };
-exports.getProductById = getProductById;
-const updateProduct = async (id, data) => {
-    return await prisma_1.prisma.product.update({
+export const updateProduct = async (id, data) => {
+    return await prisma.product.update({
         where: { id, }, data,
     });
 };
-exports.updateProduct = updateProduct;
-const deleteProduct = async (id) => {
-    return await prisma_1.prisma.product.delete({
+export const deleteProduct = async (id) => {
+    return await prisma.product.delete({
         where: {
             id,
         },
     });
 };
-exports.deleteProduct = deleteProduct;

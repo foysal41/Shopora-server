@@ -1,9 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const wishlist_1 = require("../services/wishlist");
-const auth_1 = require("../middleware/auth");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { addToWishlist, removeFromWishlist, isProductWishlisted, getWishlistByUser, } from "../services/wishlist.js";
+import { requireAuth, requireUnblockedCustomer } from "../middleware/auth.js";
+const router = Router();
 // GET /api/v1/wishlist?userId=xxx
 router.get("/", async (req, res) => {
     try {
@@ -15,7 +13,7 @@ router.get("/", async (req, res) => {
             });
             return;
         }
-        const items = await (0, wishlist_1.getWishlistByUser)(userId);
+        const items = await getWishlistByUser(userId);
         res.status(200).json({
             success: true,
             message: "Wishlist fetched successfully",
@@ -41,7 +39,7 @@ router.get("/check", async (req, res) => {
             });
             return;
         }
-        const wishlisted = await (0, wishlist_1.isProductWishlisted)(userId, productId);
+        const wishlisted = await isProductWishlisted(userId, productId);
         res.status(200).json({
             success: true,
             data: { wishlisted },
@@ -56,7 +54,7 @@ router.get("/check", async (req, res) => {
     }
 });
 // POST /api/v1/wishlist   body: { userId, productId }
-router.post("/", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req, res) => {
+router.post("/", requireAuth, requireUnblockedCustomer, async (req, res) => {
     try {
         const { productId } = req.body;
         const userId = req.user.id;
@@ -67,7 +65,7 @@ router.post("/", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req
             });
             return;
         }
-        const item = await (0, wishlist_1.addToWishlist)(userId, productId);
+        const item = await addToWishlist(userId, productId);
         res.status(201).json({
             success: true,
             message: "Added to wishlist",
@@ -83,7 +81,7 @@ router.post("/", auth_1.requireAuth, auth_1.requireUnblockedCustomer, async (req
     }
 });
 // DELETE /api/v1/wishlist/:productId?userId=xxx
-router.delete("/:productId", auth_1.requireAuth, async (req, res) => {
+router.delete("/:productId", requireAuth, async (req, res) => {
     try {
         const productId = String(req.params.productId);
         const userId = req.user.id;
@@ -94,7 +92,7 @@ router.delete("/:productId", auth_1.requireAuth, async (req, res) => {
             });
             return;
         }
-        await (0, wishlist_1.removeFromWishlist)(userId, productId);
+        await removeFromWishlist(userId, productId);
         res.status(200).json({
             success: true,
             message: "Removed from wishlist",
@@ -108,4 +106,4 @@ router.delete("/:productId", auth_1.requireAuth, async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

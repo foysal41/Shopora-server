@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createBrand, deleteBrand, getBrands, updateBrand, getBrandById } from "../services/brands";
+import { createBrand, deleteBrand, getBrands, updateBrand, getBrandById } from "../services/brands.js";
 
 
 

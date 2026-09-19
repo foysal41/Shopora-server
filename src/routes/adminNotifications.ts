@@ -1,6 +1,6 @@
 import { Router, type Response } from "express";
-import { requireAdmin, requireAuth } from "../middleware/auth";
-import { NotificationError, createAdminNotifications, deleteNotification, getNotificationsByUser, markAsRead } from "../services/notifications";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
+import { NotificationError, createAdminNotifications, deleteNotification, getNotificationsByUser, markAsRead } from "../services/notifications.js";
 
 const router = Router();
 router.use(requireAuth, requireAdmin);

@@ -1,6 +1,6 @@
 import { Router, type Response } from "express";
-import { requireAdmin, requireAuth } from "../middleware/auth";
-import { ReportError, categories, inventory, overview, parseReportQuery, sales, sellers } from "../services/reports";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
+import { ReportError, categories, inventory, overview, parseReportQuery, sales, sellers } from "../services/reports.js";
 
 const router = Router();
 router.use(requireAuth, requireAdmin);

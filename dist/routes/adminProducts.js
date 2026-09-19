@@ -1,13 +1,11 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const auth_1 = require("../middleware/auth");
-const adminProducts_1 = require("../services/adminProducts");
-const router = (0, express_1.Router)();
-router.use(auth_1.requireAuth, auth_1.requireAdmin);
+import { Router } from "express";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
+import { AdminProductError, getAdminProducts } from "../services/adminProducts.js";
+const router = Router();
+router.use(requireAuth, requireAdmin);
 router.get("/", async (req, res) => {
     try {
-        const result = await (0, adminProducts_1.getAdminProducts)({
+        const result = await getAdminProducts({
             sellerId: typeof req.query.sellerId === "string" ? req.query.sellerId : undefined,
             sellerName: typeof req.query.sellerName === "string" ? req.query.sellerName : undefined,
             search: typeof req.query.search === "string" ? req.query.search : undefined,
@@ -23,11 +21,11 @@ router.get("/", async (req, res) => {
     }
     catch (error) {
         console.error("GET ADMIN PRODUCTS ERROR:", error);
-        const status = error instanceof adminProducts_1.AdminProductError ? error.statusCode : 500;
+        const status = error instanceof AdminProductError ? error.statusCode : 500;
         res.status(status).json({
             success: false,
             message: error instanceof Error ? error.message : "Failed to fetch admin products",
         });
     }
 });
-exports.default = router;
+export default router;

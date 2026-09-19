@@ -1,5 +1,5 @@
 import { hashPassword, verifyPassword } from "better-auth/crypto";
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 
 const MAX_NAME_LENGTH = 100;
 const CREDENTIAL_PROVIDER = "credential";

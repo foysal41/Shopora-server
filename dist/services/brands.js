@@ -1,9 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBrandById = exports.deleteBrand = exports.updateBrand = exports.createBrand = exports.getBrands = void 0;
-const prisma_1 = require("../lib/prisma");
-const getBrands = async () => {
-    const brands = await prisma_1.prisma.brands.findMany({
+import { prisma } from "../lib/prisma.js";
+export const getBrands = async () => {
+    const brands = await prisma.brands.findMany({
         include: {
             _count: {
                 select: {
@@ -27,9 +24,8 @@ const getBrands = async () => {
         products: brand._count.products,
     }));
 };
-exports.getBrands = getBrands;
-const createBrand = async (data) => {
-    return await prisma_1.prisma.brands.create({
+export const createBrand = async (data) => {
+    return await prisma.brands.create({
         data: {
             name: data.name,
             description: data.description,
@@ -37,22 +33,19 @@ const createBrand = async (data) => {
         }
     });
 };
-exports.createBrand = createBrand;
-const updateBrand = async (id, data) => {
-    return await prisma_1.prisma.brands.update({
+export const updateBrand = async (id, data) => {
+    return await prisma.brands.update({
         where: { id },
         data,
     });
 };
-exports.updateBrand = updateBrand;
-const deleteBrand = async (id) => {
-    return await prisma_1.prisma.brands.delete({
+export const deleteBrand = async (id) => {
+    return await prisma.brands.delete({
         where: { id },
     });
 };
-exports.deleteBrand = deleteBrand;
-const getBrandById = async (id) => {
-    const brand = await prisma_1.prisma.brands.findUnique({
+export const getBrandById = async (id) => {
+    const brand = await prisma.brands.findUnique({
         where: { id },
         include: {
             products: {
@@ -73,4 +66,3 @@ const getBrandById = async (id) => {
         products: brand.products,
     };
 };
-exports.getBrandById = getBrandById;

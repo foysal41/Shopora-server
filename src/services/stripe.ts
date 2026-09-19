@@ -1,4 +1,4 @@
-import { getStripe } from "../lib/stripe";
+import { getStripe } from "../lib/stripe.js";
 
 type CheckoutItem = {
   productId: string;

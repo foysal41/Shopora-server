@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 
 export class AdminProductError extends Error {
   constructor(public message: string, public statusCode: number) {

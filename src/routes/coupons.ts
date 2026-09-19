@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getCoupons } from "../services/coupons";
+import { getCoupons } from "../services/coupons.js";
 
 const router = Router();
 

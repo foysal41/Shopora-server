@@ -1,15 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const products_1 = require("../services/products");
-const search_1 = require("../services/search");
-const auth_1 = require("../middleware/auth");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { createProduct, deleteProduct, getNewArrivals, getProductById, getProducts, updateProduct } from "../services/products.js";
+import { searchProducts } from "../services/search.js";
+import { requireAuth, requireSellerProductAccess } from "../middleware/auth.js";
+const router = Router();
 // GET /api/v1/products/search?q=ring
 router.get("/search", async (req, res) => {
     try {
         const query = String(req.query.q || "");
-        const products = await (0, search_1.searchProducts)(query);
+        const products = await searchProducts(query);
         res.status(200).json({
             success: true,
             message: "Products searched successfully",
@@ -27,7 +25,7 @@ router.get("/search", async (req, res) => {
 // GET /api/v1/products/new-arrivals
 router.get("/new-arrivals", async (req, res) => {
     try {
-        const products = await (0, products_1.getNewArrivals)();
+        const products = await getNewArrivals();
         return res.status(200).json({
             success: true,
             message: "New arrivals fetched successfully",
@@ -46,7 +44,7 @@ router.get("/new-arrivals", async (req, res) => {
 router.get("/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const product = await (0, products_1.getProductById)(id);
+        const product = await getProductById(id);
         if (!product) {
             return res.status(404).json({
                 success: false,
@@ -70,7 +68,7 @@ router.get("/:id", async (req, res) => {
 //GET /api/v1/products
 router.get("/", async (req, res) => {
     try {
-        const products = await (0, products_1.getProducts)();
+        const products = await getProducts();
         res.status(200).json({
             success: true,
             message: "Products Fetched Successfully",
@@ -84,9 +82,9 @@ router.get("/", async (req, res) => {
         });
     }
 });
-router.post("/", auth_1.requireAuth, auth_1.requireSellerProductAccess, async (req, res) => {
+router.post("/", requireAuth, requireSellerProductAccess, async (req, res) => {
     try {
-        const product = await (0, products_1.createProduct)({
+        const product = await createProduct({
             ...req.body,
             sellerId: req.user?.role === "Seller" ? req.user.id : req.body.sellerId,
         });
@@ -104,9 +102,9 @@ router.post("/", auth_1.requireAuth, auth_1.requireSellerProductAccess, async (r
         });
     }
 });
-router.patch("/:id", auth_1.requireAuth, auth_1.requireSellerProductAccess, async (req, res) => {
+router.patch("/:id", requireAuth, requireSellerProductAccess, async (req, res) => {
     try {
-        const product = await (0, products_1.updateProduct)(String(req.params.id), req.body);
+        const product = await updateProduct(String(req.params.id), req.body);
         res.status(200).json({
             success: true,
             message: "Product update successfully",
@@ -120,9 +118,9 @@ router.patch("/:id", auth_1.requireAuth, auth_1.requireSellerProductAccess, asyn
         });
     }
 });
-router.delete("/:id", auth_1.requireAuth, auth_1.requireSellerProductAccess, async (req, res) => {
+router.delete("/:id", requireAuth, requireSellerProductAccess, async (req, res) => {
     try {
-        const product = await (0, products_1.deleteProduct)(String(req.params.id));
+        const product = await deleteProduct(String(req.params.id));
         res.status(200).json({
             success: true,
             message: "Product deleted successfully",
@@ -136,4 +134,4 @@ router.delete("/:id", auth_1.requireAuth, auth_1.requireSellerProductAccess, asy
         });
     }
 });
-exports.default = router;
+export default router;

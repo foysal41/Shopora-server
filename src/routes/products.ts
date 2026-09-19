@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { createProduct, deleteProduct, getNewArrivals, getProductById, getProducts, updateProduct } from "../services/products";
-import { searchProducts } from "../services/search";
-import { requireAuth, requireSellerProductAccess } from "../middleware/auth";
+import { createProduct, deleteProduct, getNewArrivals, getProductById, getProducts, updateProduct } from "../services/products.js";
+import { searchProducts } from "../services/search.js";
+import { requireAuth, requireSellerProductAccess } from "../middleware/auth.js";
 const router = Router();
 
 

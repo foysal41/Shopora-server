@@ -1,19 +1,17 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const auth_1 = require("../middleware/auth");
-const account_1 = require("../services/account");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { getSessionToken, requireAuth } from "../middleware/auth.js";
+import { changePassword, updateProfile, validateName, } from "../services/account.js";
+const router = Router();
 const MIN_PASSWORD_LENGTH = 8;
-router.use(auth_1.requireAuth);
+router.use(requireAuth);
 router.patch("/profile", async (req, res) => {
-    const nameError = (0, account_1.validateName)(req.body?.name);
+    const nameError = validateName(req.body?.name);
     if (nameError) {
         res.status(400).json({ success: false, message: nameError });
         return;
     }
     try {
-        const user = await (0, account_1.updateProfile)(req.user.id, req.body.name);
+        const user = await updateProfile(req.user.id, req.body.name);
         res.json({ success: true, data: user });
     }
     catch (error) {
@@ -41,11 +39,11 @@ router.post("/password", async (req, res) => {
         return;
     }
     try {
-        const result = await (0, account_1.changePassword)({
+        const result = await changePassword({
             userId: req.user.id,
             currentPassword,
             newPassword,
-            currentSessionToken: (0, auth_1.getSessionToken)(req),
+            currentSessionToken: getSessionToken(req),
             revokeOtherSessions: body.revokeOtherSessions === true,
         });
         if (!result.ok) {
@@ -62,4 +60,4 @@ router.post("/password", async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to change password" });
     }
 });
-exports.default = router;
+export default router;

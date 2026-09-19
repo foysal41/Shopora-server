@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAdmin, requireAuth } from "../middleware/auth";
-import { AdminProductError, getAdminProducts } from "../services/adminProducts";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
+import { AdminProductError, getAdminProducts } from "../services/adminProducts.js";
 
 const router = Router();
 router.use(requireAuth, requireAdmin);

@@ -1,14 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const openrouter_1 = require("../lib/openrouter");
-const search_1 = require("../services/search");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { openrouter } from "../lib/openrouter.js";
+import { searchProducts } from "../services/search.js";
+const router = Router();
 /* =========================================================
    AI RESPONSE HELPER
 ========================================================= */
 const getAIResponse = async (systemPrompt, userPrompt) => {
-    const response = await openrouter_1.openrouter.chat.send({
+    const response = await openrouter.chat.send({
         chatRequest: {
             model: "openrouter/free",
             messages: [
@@ -134,7 +132,7 @@ Do not invent Shopora product information.
         ===================================================== */
         const searchQuery = searchInfo.searchQuery.trim();
         // console.log( "SHOPORA PRODUCT SEARCH QUERY:", searchQuery );
-        const products = await (0, search_1.searchProducts)(searchQuery);
+        const products = await searchProducts(searchQuery);
         // console.log(
         //   "PRODUCTS FOUND:",
         //   products.length
@@ -221,4 +219,4 @@ ${productContext}
         });
     }
 });
-exports.default = router;
+export default router;

@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 
-import { auth } from "../lib/auth";
-import { prisma } from "../lib/prisma";
-import type { AuthenticatedUser } from "../types/express";
+import { auth } from "../lib/auth.js";
+import { prisma } from "../lib/prisma.js";
+import type { AuthenticatedUser } from "../types/express.js";
 
 /**
  * Extract session token.

@@ -1,5 +1,5 @@
-import { prisma } from "../lib/prisma";
-import { createNotification } from "./notifications";
+import { prisma } from "../lib/prisma.js";
+import { createNotification } from "./notifications.js";
 
 export const createProduct = async (data: any) => {
     // console.log(data)

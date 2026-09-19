@@ -16,10 +16,10 @@
  */
 
 import * as runtime from "@prisma/client/runtime/client"
-import type * as Prisma from "../models"
-import { type PrismaClient } from "./class"
+import type * as Prisma from "../models.js"
+import { type PrismaClient } from "./class.js"
 
-export type * from '../models'
+export type * from '../models.js'
 
 export type DMMF = typeof runtime.DMMF
 
@@ -2112,7 +2112,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
    * @example
    * ```ts
    * import { PrismaPg } from '@prisma/adapter-pg'
-   * import { PrismaClient } from './generated/prisma/client'
+   * import { PrismaClient } from './generated/prisma/client.js'
    * 
    * const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
    * const prisma = new PrismaClient({ adapter })

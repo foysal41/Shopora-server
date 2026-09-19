@@ -1,4 +1,4 @@
-import type { users } from "../generated/prisma/client";
+import type { users } from "../generated/prisma/client.js";
 
 export type AuthenticatedUser = users & {
   isBlocked: boolean;

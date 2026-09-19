@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const address_1 = require("../services/address");
-const router = (0, express_1.Router)();
+import { Router } from "express";
+import { getAddressesByUser, createAddress, updateAddress, deleteAddress, } from "../services/address.js";
+const router = Router();
 /* =========================================================
    GET /api/v1/addresses?userId=xxx
    List the logged-in customer's addresses.
@@ -17,7 +15,7 @@ router.get("/", async (req, res) => {
             });
             return;
         }
-        const addresses = await (0, address_1.getAddressesByUser)(userId);
+        const addresses = await getAddressesByUser(userId);
         res.status(200).json({
             success: true,
             message: "Addresses fetched successfully",
@@ -56,7 +54,7 @@ router.post("/", async (req, res) => {
             });
             return;
         }
-        const address = await (0, address_1.createAddress)(userId, rest);
+        const address = await createAddress(userId, rest);
         res.status(201).json({
             success: true,
             message: "Address added successfully",
@@ -86,7 +84,7 @@ router.patch("/:id", async (req, res) => {
             });
             return;
         }
-        const updated = await (0, address_1.updateAddress)(userId, id, rest);
+        const updated = await updateAddress(userId, id, rest);
         if (!updated) {
             res.status(404).json({
                 success: false,
@@ -124,7 +122,7 @@ router.delete("/:id", async (req, res) => {
             });
             return;
         }
-        const removed = await (0, address_1.deleteAddress)(userId, id);
+        const removed = await deleteAddress(userId, id);
         if (!removed) {
             res.status(404).json({
                 success: false,
@@ -145,4 +143,4 @@ router.delete("/:id", async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

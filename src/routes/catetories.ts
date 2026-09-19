@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { optionalAuth, requireAdmin, requireAuth } from "../middleware/auth";
+import { optionalAuth, requireAdmin, requireAuth } from "../middleware/auth.js";
 import {
   CategoryError,
   createCategory,
@@ -7,7 +7,7 @@ import {
   getCategories,
   getCategoryById,
   updateCategory,
-} from "../services/categories";
+} from "../services/categories.js";
 
 const router = Router();
 

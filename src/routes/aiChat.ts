@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { openrouter } from "../lib/openrouter";
-import { searchProducts } from "../services/search";
+import { openrouter } from "../lib/openrouter.js";
+import { searchProducts } from "../services/search.js";
 
 const router = Router();
 

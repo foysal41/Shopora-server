@@ -1,15 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createOrder = exports.getCustomerOrders = void 0;
-const prisma_1 = require("../lib/prisma");
+import { prisma } from "../lib/prisma.js";
 // ================= GET CUSTOMER ORDERS =================
 // All orders that belong to a single customer, newest first,
 // flattened into the shape the "My Orders" page expects.
-const getCustomerOrders = async (customerId) => {
+export const getCustomerOrders = async (customerId) => {
     if (!customerId) {
         throw new Error("Customer ID is required.");
     }
-    const orders = await prisma_1.prisma.order.findMany({
+    const orders = await prisma.order.findMany({
         where: { customerId },
         include: {
             items: {
@@ -47,8 +44,7 @@ const getCustomerOrders = async (customerId) => {
         })),
     }));
 };
-exports.getCustomerOrders = getCustomerOrders;
-const createOrder = async (data) => {
+export const createOrder = async (data) => {
     // ================= VALIDATION =================
     if (!data.customerId) {
         throw new Error("Customer ID is required.");
@@ -83,7 +79,7 @@ const createOrder = async (data) => {
         quantity,
     }));
     // ================= TRANSACTION =================
-    return await prisma_1.prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx) => {
         // ================= CHECK CUSTOMER =================
         const customer = await tx.users.findUnique({
             where: {
@@ -245,4 +241,3 @@ const createOrder = async (data) => {
         return order;
     });
 };
-exports.createOrder = createOrder;

@@ -1,12 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MAX_PAYMENT_METHODS_PER_USER = void 0;
-exports.listPaymentMethods = listPaymentMethods;
-exports.createPaymentMethod = createPaymentMethod;
-exports.updatePaymentMethod = updatePaymentMethod;
-exports.deletePaymentMethod = deletePaymentMethod;
-const prisma_1 = require("../lib/prisma");
-exports.MAX_PAYMENT_METHODS_PER_USER = 3;
+import { prisma } from "../lib/prisma.js";
+export const MAX_PAYMENT_METHODS_PER_USER = 3;
 const publicFields = {
     id: true,
     label: true,
@@ -21,20 +14,20 @@ const publicFields = {
     createdAt: true,
     updatedAt: true,
 };
-async function listPaymentMethods(userId) {
-    return prisma_1.prisma.paymentMethod.findMany({
+export async function listPaymentMethods(userId) {
+    return prisma.paymentMethod.findMany({
         where: { userId, status: "active" },
         select: publicFields,
         orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
     });
 }
-async function createPaymentMethod(userId, input) {
-    return prisma_1.prisma.$transaction(async (transaction) => {
+export async function createPaymentMethod(userId, input) {
+    return prisma.$transaction(async (transaction) => {
         // Serialize additions for this customer so concurrent requests cannot bypass the limit.
         await transaction.$queryRaw `SELECT id FROM "users" WHERE id = ${userId} FOR UPDATE`;
         const existingCount = await transaction.paymentMethod.count({ where: { userId } });
-        if (existingCount >= exports.MAX_PAYMENT_METHODS_PER_USER) {
-            throw new Error(`You can save at most ${exports.MAX_PAYMENT_METHODS_PER_USER} payment methods`);
+        if (existingCount >= MAX_PAYMENT_METHODS_PER_USER) {
+            throw new Error(`You can save at most ${MAX_PAYMENT_METHODS_PER_USER} payment methods`);
         }
         const shouldBeDefault = input.isDefault === true || existingCount === 0;
         if (shouldBeDefault) {
@@ -49,8 +42,8 @@ async function createPaymentMethod(userId, input) {
         });
     });
 }
-async function updatePaymentMethod(userId, id, input) {
-    return prisma_1.prisma.$transaction(async (transaction) => {
+export async function updatePaymentMethod(userId, id, input) {
+    return prisma.$transaction(async (transaction) => {
         const existing = await transaction.paymentMethod.findFirst({ where: { id, userId } });
         if (!existing)
             return null;
@@ -67,8 +60,8 @@ async function updatePaymentMethod(userId, id, input) {
         });
     });
 }
-async function deletePaymentMethod(userId, id) {
-    return prisma_1.prisma.$transaction(async (transaction) => {
+export async function deletePaymentMethod(userId, id) {
+    return prisma.$transaction(async (transaction) => {
         const existing = await transaction.paymentMethod.findFirst({ where: { id, userId } });
         if (!existing)
             return null;

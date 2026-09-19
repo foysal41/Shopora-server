@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.openrouter = void 0;
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const sendChatRequest = async (chatRequest) => {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -22,7 +19,7 @@ const sendChatRequest = async (chatRequest) => {
     }
     return data;
 };
-exports.openrouter = {
+export const openrouter = {
     chat: {
         send: async ({ chatRequest, }) => {
             return await sendChatRequest(chatRequest);

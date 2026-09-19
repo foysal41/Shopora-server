@@ -1,9 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.prisma = void 0;
-require("dotenv/config");
-const client_1 = require("../generated/prisma/client");
-const adapter_pg_1 = require("@prisma/adapter-pg");
+import "dotenv/config";
+import { PrismaClient } from "../generated/prisma/client.js";
+import { PrismaPg } from "@prisma/adapter-pg";
 if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL is not set");
 }
@@ -11,14 +8,14 @@ const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
     throw new Error("DATABASE_URL is not set");
 }
-const adapter = new adapter_pg_1.PrismaPg({
+const adapter = new PrismaPg({
     connectionString,
 });
 const globalForPrisma = globalThis;
-exports.prisma = globalForPrisma.prisma ??
-    new client_1.PrismaClient({
+export const prisma = globalForPrisma.prisma ??
+    new PrismaClient({
         adapter,
     });
 if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prisma = exports.prisma;
+    globalForPrisma.prisma = prisma;
 }
