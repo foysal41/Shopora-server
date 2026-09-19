@@ -344,7 +344,7 @@ router.get("/:id" , async(req, res) => {
 
 
 
-//GET /api/v1/products
+//GET /api/v1/products....
 
 router.get("/" , async(req, res)=>{
     try{
