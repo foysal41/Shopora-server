@@ -50,6 +50,7 @@ model users {
   emailVerified    Boolean         @default(false)
   image            String?
   role             UserRole        @default(Customer)
+  previousRole     UserRole?
   isBlocked        Boolean         @default(false)
   isDeleted        Boolean         @default(false)
   createdAt        DateTime

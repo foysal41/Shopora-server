@@ -22,6 +22,7 @@ import accountRouter from "./routes/account.js";
 import adminCouponsRouter from "./routes/adminCoupons.js";
 import adminNotificationsRouter from "./routes/adminNotifications.js";
 import adminReportsRouter from "./routes/adminReports.js";
+import adminUsersRouter from "./routes/adminUsers.js";
 const app = express();
 
 
@@ -57,6 +58,7 @@ app.use("/api/v1/admin/products", adminProductsRouter);
 app.use("/api/v1/admin/coupons", adminCouponsRouter);
 app.use("/api/v1/admin/notifications", adminNotificationsRouter);
 app.use("/api/v1/admin/reports", adminReportsRouter);
+app.use("/api/v1/admin/users", adminUsersRouter);
 app.use("/api/v1/account", accountRouter);
 
 
