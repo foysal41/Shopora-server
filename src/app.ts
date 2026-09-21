@@ -60,6 +60,7 @@ app.use("/api/v1/admin/notifications", adminNotificationsRouter);
 app.use("/api/v1/admin/reports", adminReportsRouter);
 app.use("/api/v1/admin/users", adminUsersRouter);
 app.use("/api/v1/account", accountRouter);
+app.use("/api/v1/products", productsRouter);
 
 
 export default app
