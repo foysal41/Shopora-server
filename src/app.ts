@@ -24,6 +24,8 @@ import adminNotificationsRouter from "./routes/adminNotifications.js";
 import adminReportsRouter from "./routes/adminReports.js";
 import adminUsersRouter from "./routes/adminUsers.js";
 import facebookAdsRouter from "./routes/facebookAds.js";
+import facebookLeadsRouter from "./routes/facebookLeads.js";
+
 const app = express();
 
 
@@ -63,6 +65,7 @@ app.use("/api/v1/admin/users", adminUsersRouter);
 app.use("/api/v1/account", accountRouter);
 app.use("/api/v1/products", productsRouter);
 app.use("/api/v1/seller/marketing/facebook-ads",facebookAdsRouter);
+app.use( "/api/v1/seller/facebook-leads",facebookLeadsRouter);
 
 
 export default app
