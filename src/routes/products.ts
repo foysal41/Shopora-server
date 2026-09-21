@@ -6,6 +6,7 @@ import { searchProducts } from "../services/search.js";
 import { prisma } from "../lib/prisma.js";
 import { openrouter } from "../lib/openrouter.js";
 import { requireAuth, requireSellerProductAccess } from "../middleware/auth.js";
+import { generateProductShareContent } from "../services/aiProductShare.js";
 
 type VisualUploadFile = {
   buffer: Buffer;
@@ -388,6 +389,72 @@ router.post("/", requireAuth, requireSellerProductAccess, async (req, res) => {
   });
 }
 });
+
+
+router.post(
+  "/:id/ai-share",
+  requireAuth,
+  requireSellerProductAccess,
+  async (req, res) => {
+    try {
+      const productId = String(req.params.id);
+
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
+
+      const content = await generateProductShareContent(
+        productId,
+        userId
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "AI product share content generated successfully",
+        data: content,
+      });
+    } catch (error: any) {
+      console.error(
+        "AI PRODUCT SHARE ERROR:",
+        error
+      );
+
+      const message =
+        error?.message ||
+        "Failed to generate AI product share content";
+
+      if (message === "Product not found.") {
+        return res.status(404).json({
+          success: false,
+          message,
+        });
+      }
+
+      if (
+        message.includes(
+          "do not have permission"
+        )
+      ) {
+        return res.status(403).json({
+          success: false,
+          message,
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message,
+      });
+    }
+  }
+);
+
+
 
 
 
