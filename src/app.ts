@@ -25,6 +25,8 @@ import adminReportsRouter from "./routes/adminReports.js";
 import adminUsersRouter from "./routes/adminUsers.js";
 import facebookAdsRouter from "./routes/facebookAds.js";
 import facebookLeadsRouter from "./routes/facebookLeads.js";
+import businessLeadsRouter from "./routes/businessLeads.js";
+
 
 const app = express();
 
@@ -66,6 +68,7 @@ app.use("/api/v1/account", accountRouter);
 app.use("/api/v1/products", productsRouter);
 app.use("/api/v1/seller/marketing/facebook-ads",facebookAdsRouter);
 app.use( "/api/v1/seller/facebook-leads",facebookLeadsRouter);
+app.use( "/api/v1/seller/business-leads",businessLeadsRouter);
 
 
 export default app
