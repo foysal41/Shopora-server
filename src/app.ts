@@ -26,6 +26,7 @@ import adminUsersRouter from "./routes/adminUsers.js";
 import facebookAdsRouter from "./routes/facebookAds.js";
 import facebookLeadsRouter from "./routes/facebookLeads.js";
 import businessLeadsRouter from "./routes/businessLeads.js";
+import instagramEmailScraperRouter from "./routes/instagramEmailScraper.js";
 
 
 const app = express();
@@ -69,6 +70,7 @@ app.use("/api/v1/products", productsRouter);
 app.use("/api/v1/seller/marketing/facebook-ads",facebookAdsRouter);
 app.use( "/api/v1/seller/facebook-leads",facebookLeadsRouter);
 app.use( "/api/v1/seller/business-leads",businessLeadsRouter);
+app.use("/api/v1/seller/instagram-email-leads",instagramEmailScraperRouter);
 
 
 export default app
