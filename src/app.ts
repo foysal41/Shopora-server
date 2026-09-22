@@ -27,6 +27,7 @@ import facebookAdsRouter from "./routes/facebookAds.js";
 import facebookLeadsRouter from "./routes/facebookLeads.js";
 import businessLeadsRouter from "./routes/businessLeads.js";
 import instagramEmailScraperRouter from "./routes/instagramEmailScraper.js";
+import tiktokEmailScraperRouter from "./routes/tiktokEmailScraper.js";
 
 
 const app = express();
@@ -71,6 +72,6 @@ app.use("/api/v1/seller/marketing/facebook-ads",facebookAdsRouter);
 app.use( "/api/v1/seller/facebook-leads",facebookLeadsRouter);
 app.use( "/api/v1/seller/business-leads",businessLeadsRouter);
 app.use("/api/v1/seller/instagram-email-leads",instagramEmailScraperRouter);
-
+app.use("/api/v1/seller/tiktok-email-leads",tiktokEmailScraperRouter);
 
 export default app
