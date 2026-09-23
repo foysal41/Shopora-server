@@ -7,6 +7,7 @@ export class CouponError extends Error {
         this.code = code;
     }
 }
+const COUPON_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const couponInclude = { createdBy: { select: { id: true, name: true, email: true } } };
 function record(value) { return !!value && typeof value === "object" && !Array.isArray(value); }
 function requiredText(value, field, max) {
@@ -18,12 +19,14 @@ function requiredText(value, field, max) {
     return text;
 }
 function optionalText(value, field, max) { return value === undefined || value === null || value === "" ? null : requiredText(value, field, max); }
-function parseDate(value) {
+function parseDate(value, requireFuture = false) {
     if (typeof value !== "string" && !(value instanceof Date))
         throw new CouponError("invalid", "expiryDate is required");
     const date = new Date(value);
     if (Number.isNaN(date.getTime()))
         throw new CouponError("invalid", "expiryDate must be a valid date");
+    if (requireFuture && date <= new Date())
+        throw new CouponError("invalid", "expiryDate must be in the future");
     return date;
 }
 function parseType(value) {
@@ -72,7 +75,7 @@ export async function createCoupon(input, createdById) {
     const description = optionalText(input.description, "description", 500);
     const discountType = parseType(input.discountType);
     const amount = parseAmount(input.amount, discountType);
-    const expiryDate = parseDate(input.expiryDate);
+    const expiryDate = parseDate(input.expiryDate, true);
     const usageLimit = parseLimit(input.usageLimit);
     await ensureUniqueCode(couponCode);
     return response(await prisma.coupon.create({ data: { couponCode, description, discountType, amount, expiryDate, usageLimit, createdById, status: "ACTIVE" }, include: couponInclude }));
@@ -109,11 +112,20 @@ export async function updateCoupon(id, input) {
         throw new CouponError("invalid", "At least one coupon field is required");
     return response(await prisma.coupon.update({ where: { id }, data, include: couponInclude }));
 }
-export async function deleteCoupon(id) {
-    const coupon = await prisma.coupon.findUnique({ where: { id }, select: { id: true } });
-    if (!coupon)
-        throw new CouponError("not-found", "Coupon not found");
-    await prisma.coupon.delete({ where: { id } });
+export async function deleteCoupon(id, adminUserId) {
+    if (!COUPON_ID_PATTERN.test(id))
+        throw new CouponError("invalid", "Invalid coupon ID");
+    await prisma.$transaction(async (tx) => {
+        const coupon = await tx.coupon.findUnique({ where: { id }, select: { id: true } });
+        if (!coupon)
+            throw new CouponError("not-found", "Coupon not found");
+        await tx.coupon.delete({ where: { id } });
+    });
+    console.info("ADMIN COUPON DELETED", {
+        adminUserId,
+        couponId: id,
+        timestamp: new Date().toISOString(),
+    });
 }
 export async function getUsableCoupon(couponCode) {
     const coupon = await prisma.coupon.findFirst({ where: { couponCode: { equals: couponCode.trim().toUpperCase(), mode: "insensitive" }, status: "ACTIVE", expiryDate: { gt: new Date() } } });
