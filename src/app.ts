@@ -29,7 +29,7 @@ import businessLeadsRouter from "./routes/businessLeads.js";
 import instagramEmailScraperRouter from "./routes/instagramEmailScraper.js";
 import tiktokEmailScraperRouter from "./routes/tiktokEmailScraper.js";
 import productInsightsRouter from "./routes/productInsights.js";
-
+import influencerScraperRouter from "./routes/influencerScraper.js";
 
 const app = express();
 
@@ -75,5 +75,6 @@ app.use( "/api/v1/seller/business-leads",businessLeadsRouter);
 app.use("/api/v1/seller/instagram-email-leads",instagramEmailScraperRouter);
 app.use("/api/v1/seller/tiktok-email-leads",tiktokEmailScraperRouter);
 app.use("/api/v1/seller/product-insights",productInsightsRouter);
+app.use("/api/v1/seller/influencers", influencerScraperRouter);
 
 export default app
