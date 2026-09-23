@@ -61,5 +61,5 @@ export async function updateAdminUserRole(actingAdminId, userId, requestedRole) 
             },
             select: adminUserSelect,
         });
-    });
+    }, { isolationLevel: "Serializable" });
 }

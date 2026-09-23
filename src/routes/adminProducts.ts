@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
-import { AdminProductError, getAdminProducts } from "../services/adminProducts.js";
+import { AdminProductError, deleteAdminProduct, getAdminProducts } from "../services/adminProducts.js";
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -27,6 +27,27 @@ router.get("/", async (req, res) => {
     res.status(status).json({
       success: false,
       message: error instanceof Error ? error.message : "Failed to fetch admin products",
+    });
+  }
+});
+
+router.delete("/:productId", async (req, res) => {
+  try {
+    await deleteAdminProduct(String(req.params.productId), req.user!.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Product deleted successfully",
+    });
+  } catch (error) {
+    console.error("DELETE ADMIN PRODUCT ERROR:", error);
+    const status = error instanceof AdminProductError ? error.statusCode : 500;
+
+    res.status(status).json({
+      success: false,
+      message: error instanceof AdminProductError
+        ? error.message
+        : "Failed to delete product",
     });
   }
 });

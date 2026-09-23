@@ -4,7 +4,7 @@ import { CouponError, createCoupon, deleteCoupon, getCoupons, updateCoupon } fro
 const router = Router();
 router.use(requireAuth, requireAdmin);
 function errorResponse(res, error, fallback) {
-    const status = error instanceof CouponError ? error.code === "not-found" ? 404 : error.code === "duplicate" ? 409 : 422 : 500;
+    const status = error instanceof CouponError ? error.code === "not-found" ? 404 : error.code === "duplicate" ? 409 : 400 : 500;
     res.status(status).json({ success: false, message: error instanceof CouponError ? error.message : fallback, errors: [] });
 }
 router.get("/", async (_req, res) => {
@@ -34,10 +34,10 @@ router.patch("/:id", async (req, res) => {
         errorResponse(res, error, "Failed to update coupon");
     }
 });
-router.delete("/:id", async (req, res) => {
+router.delete("/:couponId", async (req, res) => {
     try {
-        await deleteCoupon(String(req.params.id));
-        res.json({ success: true, message: "Coupon deleted successfully", data: null });
+        await deleteCoupon(String(req.params.couponId), req.user.id);
+        res.json({ success: true, message: "Coupon deleted successfully" });
     }
     catch (error) {
         console.error("ADMIN DELETE COUPON ERROR:", error);

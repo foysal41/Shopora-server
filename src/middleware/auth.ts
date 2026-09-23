@@ -165,6 +165,30 @@ export function requireAdmin(
   next();
 }
 
+export function requireSellerOrAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.user) {
+    res.status(401).json({
+      success: false,
+      message: "Authentication required",
+    });
+    return;
+  }
+
+  if (req.user.role !== "Seller" && req.user.role !== "Admin") {
+    res.status(403).json({
+      success: false,
+      message: "Seller or admin access required",
+    });
+    return;
+  }
+
+  next();
+}
+
 
 /**
  * Customer authorization
