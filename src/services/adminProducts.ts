@@ -117,3 +117,33 @@ export async function getAdminProducts(query: AdminProductQuery) {
     },
   };
 }
+
+const PRODUCT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export async function deleteAdminProduct(productId: string, adminUserId: string) {
+  if (!PRODUCT_ID_PATTERN.test(productId)) {
+    throw new AdminProductError("Invalid product ID", 400);
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const product = await tx.product.findUnique({
+      where: { id: productId },
+      select: { id: true },
+    });
+
+    if (!product) {
+      throw new AdminProductError("Product not found", 404);
+    }
+
+    await tx.wishlist.deleteMany({ where: { productId } });
+    await tx.review.deleteMany({ where: { productId } });
+    await tx.orderItems.deleteMany({ where: { productId } });
+    await tx.product.delete({ where: { id: productId } });
+  });
+
+  console.info("ADMIN PRODUCT DELETED", {
+    adminUserId,
+    productId,
+    timestamp: new Date().toISOString(),
+  });
+}
